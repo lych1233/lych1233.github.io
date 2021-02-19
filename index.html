@@ -170,7 +170,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">7</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -217,7 +217,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/01/27/InstallEnv/">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/02/02/PolicyGradient/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -230,7 +230,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/27/InstallEnv/" class="post-title-link" itemprop="url">Environment Installation （使用conda配置环境）</a>
+          <a href="/2021/02/02/PolicyGradient/" class="post-title-link" itemprop="url">Vanilla Policy Gradient (with Baseline)</a>
         </h2>
 
         <div class="post-meta-container">
@@ -240,10 +240,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">Posted on</span>
-      
 
-      <time title="Created: 2021-01-27 15:22:27 / Modified: 15:24:16" itemprop="dateCreated datePublished" datetime="2021-01-27T15:22:27+08:00">2021-01-27</time>
+      <time title="Created: 2021-02-02 14:31:03" itemprop="dateCreated datePublished" datetime="2021-02-02T14:31:03+08:00">2021-02-02</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-02-18 21:15:31" itemprop="dateModified" datetime="2021-02-18T21:15:31+08:00">2021-02-18</time>
+      </span>
 
   
 </div>
@@ -255,7 +261,566 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          
+          <blockquote>
+<p>Openai上有一篇<a target="_blank" rel="noopener" href="https://spinningup.openai.com/en/latest/algorithms/vpg.html">对Vanilla Policy Gradient进行介绍的文章</a></p>
+</blockquote>
+<h3 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h3><blockquote>
+<p>上一篇<a href="/2021/01/28/DQN/" title="介绍DQN的文章">介绍DQN的文章</a>简要介绍了<strong>MDP</strong>和一些别的简单的内容，在对<strong>Policy Gradient</strong>进行介绍前，需要再明确一些概念</p>
+</blockquote>
+<p>这次，我们用$\pi(a\mid s)$表示在$s$采取$a$的概率（这是因为<strong>Policy Gradient</strong>是一种天然的可以得到混合策略的方法）；对于一个参数$\theta$（例如一个神经网络），我们用$\pi_{\theta}$来表示由$\theta$给出的策略；$\pi^*$表示最优策略（同样，带*号的都表示<strong>optimal solution</strong>)。下面介绍的概念都是基于某一个策略$\pi$而言：</p>
+<ul>
+<li><strong>Value Function</strong>: $V(s)$表示从$s$这个状态出发得到的期望收益，可以用递推式$$V(s)=\sum_{s’, a} \pi(a\mid s)p(s’\mid s, a)(R(s, a) + \gamma V(s’))$$表示</li>
+<li><strong>Q Function</strong>：$Q(s, a)$表示在$s$采取$a$得到的收益，可以用递推式$$Q(s, a) = \sum_{s’}p(s’\mid s, a)(R(s, a) + \gamma V(s’))$$表示；由此可见，我们有$$V(s)=\sum_a \pi(a\mid s)Q(s,a)$$</li>
+<li>**Advantage Function **：优势函数$A(s, a)$表示采取$a$比采取别的策略有多大的好处，可以直接定义为$A(s, a) = Q(s, a) - V(s)$</li>
+</ul>
+<p>我们的目标同样是找到一个最好的$\theta^*$来最大化从初始状态出发得到的收益，即最大化$J(\theta)=V^{\pi_{\theta}}(s_0)$</p>
+<h3 id="Policy-Gradient"><a href="#Policy-Gradient" class="headerlink" title="Policy Gradient"></a>Policy Gradient</h3><h4 id="Reinforce"><a href="#Reinforce" class="headerlink" title="Reinforce"></a>Reinforce</h4><p>通过数学推导我们可以得到$$\nabla_\theta J = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)Q^{\pi_\theta}(s, a)\right]$$</p>
+<p>在优化$\theta$时，我们只需要通过模型给出$\pi_\theta$即可，<strong>Q function</strong>可以通过在环境中使用$\pi_\theta$进行交互来得到一个对$Q^{\pi_\theta}(s, a)$估计$\hat Q(s, a)$；换而言之，我们通过$\pi_\theta$得到了一个<strong>trajectory</strong> $\tau = (s_t, a_t, r_t)<em>{t=0}^n$，那么$\hat Q(s_t, a_t)=\sum</em>{k=t}^{n} \gamma^{k-t}r_k$</p>
+<p>然后我们就可以通过$\nabla_\theta J \approx \sum_{t=0}^n \nabla_\theta \log \pi_\theta(a_t\mid s_t)\hat Q(s_t, a_t)$得到一个对梯度的估计$\Delta \theta$，然后用$\theta \leftarrow \theta + \alpha \Delta \theta$进行更新即可；实际操作中可以多收集几条<strong>trajectory</strong>去平均值来得到一个更好的估计</p>
+<blockquote>
+<p> 上述方法实际上就是<strong>Monte-Carlo Policy Gradient (REINFORCE)**，即通过$\pi_\theta$来收集一个</strong>trajectory**，然后得到一个对$J(\theta)$的梯度的估计来得到一个增大它的方向$\Delta \theta$，最后让$\theta$朝着这个方向前进一个步长得到新的$\pi_\theta’$</p>
+</blockquote>
+<h4 id="Policy-Gradient-with-Baseline"><a href="#Policy-Gradient-with-Baseline" class="headerlink" title="Policy Gradient with Baseline"></a>Policy Gradient with Baseline</h4><p><strong>Reinforce</strong>的原理十分简单，我们可以看到如果一个决策的能够获得收益，那么它的概率就会提升，反之则会下降；于是这就带来一个显而易见的问题，如果一个环境的<strong>reward</strong>都是正的，或者都是负的，那么就会很难收敛，甚至收敛到一个非常差的<strong>local optimum</strong></p>
+<blockquote>
+<p>尽管从原理上讲，即便<strong>reward</strong>能都是正的，好的策略能得到比坏的策略更高的<strong>reward</strong>，因此能够得到一个更大的梯度从而在长期获得优势，但是在实践中，一旦陷入<strong>local optimum</strong>，就很难再sample到好的策略从而跳出<strong>local optimum</strong></p>
+</blockquote>
+<p>因此我们希望能都解决这个 “<strong>reward</strong>都是正的” 的问题；注意到即便我们对$Q(s, a)$增添上一个函数$b(s)$是不影响梯度的，即$$\nabla_\theta J = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)Q^{\pi_\theta}(s, a)\right] = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)\left(Q^{\pi_\theta}(s, a) + b(s)\right)\right]，$$因而我们可以转而使用$$\nabla_\theta J = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)A^{\pi_\theta}(s, a)\right]$$</p>
+<blockquote>
+<p>这种方法也叫Policy gradient with baseline，其中baseline就是指$V(s)$，直观的理解就是通过减去一个平均收益，我们让<strong>reward</strong>有正有负了（实际上就是减小了variance）</p>
+</blockquote>
+<p>于是，我们只需要在$\pi_\theta$的基础上多维护一个$V_\phi$，然后就能使用对<strong>Advantage function</strong>进行估计：$\hat A(s, a) = \hat Q(s, a)-V_\phi(s)$；于此同时，我们需要最小化$E_{\pi_\theta}[(V_\phi(s)-\hat V(s))^2]$来让我们的<strong>Value function</strong>给出一个尽量准确的估计</p>
+<h4 id="Policy-Gradient-Variants"><a href="#Policy-Gradient-Variants" class="headerlink" title="Policy Gradient Variants"></a>Policy Gradient Variants</h4><p>通过$$\nabla_\theta J  = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)\left(Q^{\pi_\theta}(s, a) + b(s)\right)\right]$$ 一式我们能得到一系列的<strong>on policy</strong>的<strong>Policy Gradient</strong>算法：</p>
+<ul>
+<li><strong>Vanilla</strong>: $\nabla_\theta J  = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)\color{red}{\hat A(s, a)}\right]$并同时维护$V_\phi(s)$<ul>
+<li>如果我们通过一些方法来限制步长使得模型一定获得提升则可以得到<strong>TRPO</strong>算法</li>
+</ul>
+</li>
+<li><strong>Q Actor-Critic</strong>（通常所说的<strong>Actor-Critic</strong>: $\nabla_\theta J  = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)\color{red}{Q_\phi(s, a)}\right]$并同时维护$Q_\theta(s, a)$（使用TD-error更新$Q_\phi(s, a)$）</li>
+<li><strong>Advantage/TD Actor-Critic</strong>：通过将$\color{red}{Q_\phi(s,a)}$替换为$\color{red}{A_\phi(s,a)}$和TD-error实现</li>
+</ul>
+<blockquote>
+<p>上诉做法本质上都是通过尽量得到一个对$Q^{\pi_\theta}(s, a)$的更好的表示来减小variance</p>
+<p><strong>Off policy</strong>的做法则不能通过上述方法得到（即不能直接将上面计算梯度的方法运用在过去的<strong>trajectory</strong>来得到对梯度的估计），需要一个叫<strong>importance factor</strong>的东西来计算正确(<strong>consistent</strong>)的梯度估计</p>
+</blockquote>
+<h4 id="GAE-Generalized-Advantage-Estimate"><a href="#GAE-Generalized-Advantage-Estimate" class="headerlink" title="GAE (Generalized Advantage Estimate)"></a>GAE (Generalized Advantage Estimate)</h4><p>可以引入参数$\lambda$定义广义的<strong>Advantage Function</strong>估计，同过<strong>TD-error</strong>可以定义一步估计$$\hat A^{(1)}(s_t, a_t) = \delta_t = r_t+\gamma V(s_{t+1}) - V(s_t)$$</p>
+<p>类似的可以定义$k$步估计$$\hat A^{(k)}(s_t,a_t)=\sum_{i=0}^{k-1} \delta_{t+i} =  \sum_{i=1}^{k-1} \gamma^i r_{t+i} + \gamma^kV(s_{t+k}) - V(s_t)$$；由此可见之前定义的$\hat A(s, a)$其实就是$k=\infty$的情况</p>
+<blockquote>
+<p>可以看到$k$越大，我们的估计就约接近收集的数据，就会有较小的<strong>bias</strong>，但同时也会有较大的<strong>variance</strong></p>
+<p>于是我们就需要参数$\lambda$来平衡这二者的影响</p>
+</blockquote>
+<p>定义$\text{GAE}(\gamma, \lambda)$的估计（通过添加系数使其<strong>consistent</strong>）为$$\widehat A(s_t, a_t) = (1-\lambda)(\hat A^{(1)}(s_t, a_t) + \lambda\hat A^{(2)}(s_t, a_t) + \lambda^2 \hat A^{(3)}(s_t, a_t) + \cdots)=\sum_{k=0}^{\infty}(\lambda\gamma)^k\delta_{t+k}$$</p>
+<p>我们可以通过调整参数$\lambda$来调整，$\lambda=0$相当于用<strong>TD-error</strong>进行估计，$\lambda=1$相当于用收集到的<strong>reward</strong>进行估计</p>
+<h3 id="Training-Tricks"><a href="#Training-Tricks" class="headerlink" title="Training Tricks"></a>Training Tricks</h3><h4 id="Advantage-Normalization"><a href="#Advantage-Normalization" class="headerlink" title="Advantage Normalization"></a>Advantage Normalization</h4><p>在得到一个batch的数据<strong>Advantage Function</strong>的估计后，可以对其进行<strong>Normalization</strong></p>
+<blockquote>
+<p>这一操作可能是<strong>consistent</strong>的（not strictly proved here)，因为$\sum_a p(a\mid s)A(s, a) = \sum_a p(a\mid s)(Q(s, a)- V(s)) = 0$</p>
+</blockquote>
+<h4 id="Entropy-Loss-Score"><a href="#Entropy-Loss-Score" class="headerlink" title="Entropy Loss (Score)"></a>Entropy Loss (Score)</h4><p>可以添加一个<strong>Entropy</strong>的贡献，即为$J$加上$\mathbb E_s [H(s)] = \mathbb E_s [-\sum_{a} p(a\mid s)\log p(a\mid s)]$，这样可以保证一定的随机性使得不会很容易的就陷入到某一个固定的局部最优策略中</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/01/28/Pytorch-Intro/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yancheng Liang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lych_cys">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/28/Pytorch-Intro/" class="post-title-link" itemprop="url">Pytorch Fundamental</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-28 17:21:45" itemprop="dateCreated datePublished" datetime="2021-01-28T17:21:45+08:00">2021-01-28</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-02-12 22:09:02" itemprop="dateModified" datetime="2021-02-12T22:09:02+08:00">2021-02-12</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>不定期更新</p>
+<h3 id="Useful-Instructions-in-Pytorch"><a href="#Useful-Instructions-in-Pytorch" class="headerlink" title="Useful Instructions in Pytorch"></a>Useful Instructions in Pytorch</h3><h5 id="Tensor-Reshape-Concatenate"><a href="#Tensor-Reshape-Concatenate" class="headerlink" title="Tensor Reshape/Concatenate"></a>Tensor Reshape/Concatenate</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">torch.cat((tensor1, tensor2, ..., tesnorN), dim) <span class="comment">#在dim维度拼接多个tensor</span></span><br><span class="line">torch.stack((tensor1, tensor2, ..., tesnorN), dim) <span class="comment">#在dim维度叠加多个tensor</span></span><br><span class="line"><span class="comment">#上述两个操作可以使用tuple或者list传输tensors</span></span><br><span class="line">torch.flatten(x, dim) <span class="comment">#将x在dim维度展开</span></span><br><span class="line">x.view(a, b, ...) <span class="comment">#将x变形为a*b*...，具体要求见官方文档</span></span><br><span class="line">x.squeeze(dim) <span class="comment">#如果dim这一维大小为1，则直接缩掉这一维</span></span><br><span class="line">x.unsqueeze(dim) <span class="comment">#在dim这一维前加上大小为1的一维</span></span><br></pre></td></tr></table></figure>
+<h5 id="Binary-Operation-for-Tensor"><a href="#Binary-Operation-for-Tensor" class="headerlink" title="Binary Operation for Tensor"></a>Binary Operation for Tensor</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">x * y <span class="comment">#逐位相乘</span></span><br><span class="line">x @ y <span class="comment">#矩阵乘法</span></span><br><span class="line">x.eq(y) <span class="comment">#逐个比较，返回bool tensor</span></span><br><span class="line">x.gather(dim=<span class="number">1</span>, y) <span class="comment">#如果x为m*n，y为m*1，那么返回一个m*1的x[y[k][0]][k]，表示对dim维度做提取</span></span><br></pre></td></tr></table></figure>
+<h5 id="Monadic-Operation-for-Tensor"><a href="#Monadic-Operation-for-Tensor" class="headerlink" title="Monadic Operation for Tensor"></a>Monadic Operation for Tensor</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">x.item() <span class="comment">#将一个只含有一个元素的tensor转化为单个元素（float，int等等）</span></span><br><span class="line">x.<span class="built_in">sum</span>(); x.mean(); x.std(); x.var(); <span class="comment">#求和；均值；标准差；方差</span></span><br><span class="line">x.argmax(dim) <span class="comment">#对dim维度求最大值，返回一个维度-1的tensor</span></span><br><span class="line">x.<span class="built_in">max</span>(dim) <span class="comment">#返回两个tensor，第一个是value，第二个相当于x.argmax(dim)</span></span><br><span class="line">x.size() <span class="comment">#用于查看x的形状，可以传入参数dim查看特定维度的长度</span></span><br><span class="line">x.detach() <span class="comment">#将x脱离梯度</span></span><br><span class="line">x.to(device) <span class="comment">#将x运输到对应的设备</span></span><br></pre></td></tr></table></figure>
+<h5 id="A-Powerful-Sampling-Method-Based-on-Log-Probablities"><a href="#A-Powerful-Sampling-Method-Based-on-Log-Probablities" class="headerlink" title="A Powerful Sampling Method Based on Log-Probablities"></a>A Powerful Sampling Method Based on Log-Probablities</h5><p>This method is found in openai baseline /common/distributions.py/CategoricalPd.sample</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">n = <span class="number">10</span></span><br><span class="line">logits = torch.randn(n)</span><br><span class="line">random_id = (logits - (-torch.rand(n).log()).log()).argmax().item()</span><br></pre></td></tr></table></figure>
+<p>2x speed compared with</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">n = <span class="number">10</span></span><br><span class="line">logits = torch.randn(n)</span><br><span class="line">p = torch.softmax(logits, <span class="number">0</span>)</span><br><span class="line">random_id = torch.multinomial(p, <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="Write-Efficient-Code"><a href="#Write-Efficient-Code" class="headerlink" title="Write Efficient Code"></a>Write Efficient Code</h3><blockquote>
+<p>test is done on a RTX-2080 GPU chip</p>
+</blockquote>
+<h4 id="Do-not-transfer-data-between-CPU-and-GPU-frequently"><a href="#Do-not-transfer-data-between-CPU-and-GPU-frequently" class="headerlink" title="Do not transfer data between CPU and GPU frequently"></a>Do not transfer data between CPU and GPU frequently</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">f1</span>():</span></span><br><span class="line">    a = torch.randn((N, M))</span><br><span class="line">    a = a.to(device)</span><br><span class="line">    <span class="keyword">return</span> a</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">f2</span>():</span></span><br><span class="line">    a = torch.randn((N, M), device=device)</span><br><span class="line">    <span class="keyword">return</span> a</span><br></pre></td></tr></table></figure>
+<p>f2 is 100x faster than f1</p>
+<h4 id="Random-sample-is-Slow"><a href="#Random-sample-is-Slow" class="headerlink" title="Random.sample() is Slow"></a>Random.sample() is Slow</h4><p>Use</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">idx = np.random.choice(<span class="built_in">len</span>(a), size)</span><br><span class="line">samples = [a[x] <span class="keyword">for</span> x <span class="keyword">in</span> idx]</span><br></pre></td></tr></table></figure>
+<p>instead of</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">samples = random.sample(a, size)</span><br></pre></td></tr></table></figure>
+<p>which costs 5x time.</p>
+<h4 id="Numpy-to-Tensor"><a href="#Numpy-to-Tensor" class="headerlink" title="Numpy to Tensor"></a>Numpy to Tensor</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a = torch.tensor(b) <span class="comment">#value copy</span></span><br><span class="line">a = torch.as_tensor(b) <span class="comment">#refference copy</span></span><br><span class="line">a = torch.from_numpy(b) <span class="comment">#a little bit faster than the above one but works for numpy only</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/01/28/DQN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yancheng Liang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lych_cys">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/28/DQN/" class="post-title-link" itemprop="url">DQN (Deep Q-Network)</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-28 13:42:29" itemprop="dateCreated datePublished" datetime="2021-01-28T13:42:29+08:00">2021-01-28</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-02-18 21:15:09" itemprop="dateModified" datetime="2021-02-18T21:15:09+08:00">2021-02-18</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><strong>DQN</strong>是最基本，也是被应用最广泛的<strong>RL</strong>模型之一</p>
+<h3 id="MDP-Markov-Decision-Process"><a href="#MDP-Markov-Decision-Process" class="headerlink" title="MDP (Markov Decision Process)"></a>MDP (Markov Decision Process)</h3><p>我们通常可以将一个task抽象为<strong>MDP</strong>问题。下面简单说明<strong>MDP</strong>的基本要素：</p>
+<ul>
+<li><strong>state</strong>：通常用来指代某一个当前任务（游戏）所在的状态，一般用<strong>observatoin</strong>指现在所观察到的信息（如当前游戏画面），而<strong>state</strong>可以直接是<strong>observation</strong>，也可以是之前一系列的<strong>observations</strong>的集合，或者别的自定义的方式</li>
+<li><strong>action</strong>：执行某一个操作；通常用<strong>action space</strong>指所有可以执行的操作的集合</li>
+<li><strong>reward</strong>：奖励，比如到达终点就给予+1的奖励；<strong>reward</strong>可以是一个基于<strong>state</strong>的函数$R(S)$，也可是基于<strong>state-actoin</strong> pair的函数$R(S, A)$</li>
+<li><strong>transition</strong>：转移，可以用$p(s’\mid s, a)$表示在$s$这个状态执行$a$这个<strong>action</strong>后转移到状态$s’$的概率</li>
+<li><strong>trajectory</strong>：在<strong>MDP</strong>中，从某一个初始状态$s_0$出发，采取了某个动作$a_0$后，根据转移概率转移到$s_1$，再采取某个动作$a_1$……，如此重复下去得到的$s_0, a_0, s_1, a_1, …$就是一个<strong>trajectory</strong>，并且这个<strong>trajectory</strong>的价值我们就认为是$R(s_0) + R(s_1) + R(s_2) + …$</li>
+</ul>
+<p>因此，我们的目标就是找到一种决策的方式$\pi(s)$，表示在$s$这个<strong>state</strong>采取$\pi(s)$这个<strong>action</strong>（当然，也可以有混合策略），来最大化生成的<strong>trajectory</strong>的期望价值，可以记为$$\mathbb E\left[\sum_{k=0}^{\infty}R(s_k)\mid s_{k+1}\sim p(s_{k+1} \mid s_k,\pi(s_k))\right]$$</p>
+<h3 id="Q-Learning"><a href="#Q-Learning" class="headerlink" title="Q-Learning"></a>Q-Learning</h3><h4 id="Q-Function"><a href="#Q-Function" class="headerlink" title="Q-Function"></a>Q-Function</h4><p>我们希望得到$Q(s, a)$表示在$s$采取$a$后，得到的最大期望收益，我们可以写出转移式$Q(s, a) = \sum_{s’}p(s’\mid s, a)\left(R(s, a) + \gamma \max_{a’}{Q(s’, a’)}\right)$</p>
+<blockquote>
+<ul>
+<li><strong>TD error</strong> (Temporal Difference error)：等式左右两边的差，用以估计当前的<strong>Q-function</strong>还有多大的误差</li>
+</ul>
+</blockquote>
+<p>如果我们得到了正确的<strong>Q-function</strong>，直接令$$\pi(s) = \arg\max_a Q(s, a)$$即可。</p>
+<blockquote>
+<p>采用一个基于<strong>state-action</strong>的函数而不是一个单纯的基于<strong>state</strong>的函数的原因是$Q(s, a)$可以做到<strong>model-free</strong>，也就是在不知道转移概率$p(s’ \mid s, a)$时仍然可以学习，而只基于<strong>state</strong>的函数不行</p>
+</blockquote>
+<p>在实际问题中，一个重要的困难在于<strong>state</strong>的数量往往是很大的，甚至是无穷的（例如<strong>state</strong>可以是一个连续变量），因此我们可以用一个神经网络来拟合<strong>Q-function</strong>，并且在训练时通过收集到的$s, a, s’, r(s, a)$通过转移方程来更新</p>
+<h4 id="On-Policy-与-Off-Policy"><a href="#On-Policy-与-Off-Policy" class="headerlink" title="On-Policy 与 Off-Policy"></a>On-Policy 与 Off-Policy</h4><p><strong>On-policy</strong>指的是每次都只用最新的一次<strong>trajectory</strong>来更新，而<strong>off-policy</strong>则可以将之前的<strong>trajectory</strong>中收集到的某一个转移$s, a, s’, r(s, a)$存储到<strong>memory</strong>中，并每次从<strong>memory</strong>中提出一个batch的转移来更新</p>
+<blockquote>
+<p><strong>Off-policy</strong>的方法具有明显的更高的数据使用率，但是缺陷是<strong>memory</strong>中的数据分布与当前的<strong>policy</strong>并不符合，因此会出现一些问题（如over estimate，对未访问的状态往往具有过高的估计，可以想象，对一个具有noise的分布取max得到的值一定大于实际上的平均值）</p>
+</blockquote>
+<h4 id="Exploration"><a href="#Exploration" class="headerlink" title="Exploration"></a>Exploration</h4><p><strong>RL</strong>中的一个重要的问题就是<strong>exploration</strong>，也就是在训练的时候采取什么决策方式；简单每次采用使得<strong>Q-function</strong>最大的<strong>action</strong>的方法很容易陷入一些局部的最优解；一种简单的解决方式为$\epsilon$-greedy，每次有$\epsilon$的概率选择一个随机的解，其余按照当前的<strong>Q-function</strong>贪心选择最优解</p>
+<p>在实际中，$\epsilon$-greedy已经是一个优秀的策略；基于<strong>exploration</strong>策略的研究是<strong>RL</strong>的一个方向，比较典型的有 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1606.01868">Count-Based DQN</a>，是通过给较少经过的状态更高的权值来达到<strong>explore</strong>的效果</p>
+<h4 id="DQN-on-Gym-Classic-Control-Games"><a href="#DQN-on-Gym-Classic-Control-Games" class="headerlink" title="DQN on Gym Classic Control Games"></a>DQN on Gym Classic Control Games</h4><p><a target="_blank" rel="noopener" href="http://gym.openai.com/envs/">Gym</a>上的<strong>Classic Control</strong>任务提供了一些简单的<strong>RL</strong>环境</p>
+<h4 id="How-to-Use-Gym-Environments"><a href="#How-to-Use-Gym-Environments" class="headerlink" title="How to Use Gym Environments"></a>How to Use Gym Environments</h4><h5 id="Initialization"><a href="#Initialization" class="headerlink" title="Initialization"></a>Initialization</h5><p>以<strong>CartPole</strong>环境为例，运行以下代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> gym</span><br><span class="line"></span><br><span class="line">env = gym.make(<span class="string">&#x27;CartPole-v1&#x27;</span>)</span><br><span class="line">print(env.observation_space)</span><br><span class="line">print(env.action_space)</span><br></pre></td></tr></table></figure>
+<p>可以得到输出</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Box(-3.4028234663852886e+38, 3.4028234663852886e+38, (4,), float32)</span><br><span class="line">Discrete(2)</span><br></pre></td></tr></table></figure>
+<p>表示<strong>oboservation</strong>是一个长度为4，上下界为无穷（e+38模拟很大的数）的浮点向量（这一描述并不准确，实际上Box会对每以为都有上下界限制，而直接print只是求出了所有上下界的极值）；<strong>action space</strong>是离散的，且有两个<strong>action</strong>: 0, 1</p>
+<blockquote>
+<p>如果我们将环境换成’Pendulum-v0’，第二行输出将变为</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Box(-2.0, 2.0, (1,), float32)</span><br></pre></td></tr></table></figure>
+
+<p>表示<strong>action space</strong>是(-2, 2)的连续区间；对于这种情况，如果要用<strong>DQN</strong>处理，可以考虑用若干个离散的<strong>action</strong>来替代整个连续区间</p>
+</blockquote>
+<h5 id="Run"><a href="#Run" class="headerlink" title="Run"></a>Run</h5><p>可以使用下面的方法对环境进行交互</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">state = env.reset() <span class="comment">#重置环境并获取初始状态</span></span><br><span class="line">next_state, reward, done, info = env.step(action) <span class="comment">#采取action这个动作，得到新的state，进行这一步动作的reward，done表示当前的episode（一局游戏称为一个episode）是否已经完成，info则是一些信息</span></span><br><span class="line">env.render() <span class="comment">#可以将当前一步的操作用一个动画进行展示</span></span><br></pre></td></tr></table></figure>
+<h5 id="Hint"><a href="#Hint" class="headerlink" title="Hint"></a>Hint</h5><blockquote>
+<p>由于在使用pytorch时，传入的<strong>state</strong>是一个tensor，并且需要的$s, a, r, s’$都具有特定的格式，而不同的environments的输入输出又各不相同，因此我们可以编写一个env.py来对这些环境进行封装，这样在核心代码中就不需要顾忌这些问题</p>
+</blockquote>
+<h4 id="Q-Network"><a href="#Q-Network" class="headerlink" title="Q-Network"></a>Q-Network</h4><p>通过两层<strong>MLP</strong>来提取<strong>feature</strong>，然后用一层全连接层生成<strong>Q-function</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">DQN</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, n_obs, n_act, hiddens</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(DQN, self).__init__()</span><br><span class="line">        self.fc1 = nn.Linear(n_obs, hiddens)</span><br><span class="line">        self.fc2 = nn.Linear(hiddens, hiddens)</span><br><span class="line">        self.fc3 = nn.Linear(hiddens, n_act)</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        x = F.relu(self.fc1(x))</span><br><span class="line">        x = F.relu(self.fc2(x))</span><br><span class="line">        <span class="keyword">return</span> self.fc3(x)</span><br></pre></td></tr></table></figure>
+<h4 id="Target-Network"><a href="#Target-Network" class="headerlink" title="Target Network"></a>Target Network</h4><p>用于提升训练稳定性；用$R(s, a) + \gamma Q_{\theta’}(s’, a’)$进行估计并更新$\theta$，每过一段时间将$\theta’$复制为$\theta$</p>
+<h4 id="Code"><a href="#Code" class="headerlink" title="Code"></a>Code</h4><p>Full version is available on <a target="_blank" rel="noopener" href="https://github.com/lych1233/Codes-for-RL-ML-Algorithms/tree/master/DQN">GitHub</a></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/01/27/Simple-CNN/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yancheng Liang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lych_cys">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/27/Simple-CNN/" class="post-title-link" itemprop="url">Use Pytorch to Construct A Simple CNN （pytorch入门：CNN与图像识别）</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-27 21:44:20" itemprop="dateCreated datePublished" datetime="2021-01-27T21:44:20+08:00">2021-01-27</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-01-28 17:29:03" itemprop="dateModified" datetime="2021-01-28T17:29:03+08:00">2021-01-28</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h3 id="CNN-Convolutional-Neural-Network"><a href="#CNN-Convolutional-Neural-Network" class="headerlink" title="CNN (Convolutional Neural Network)"></a>CNN (Convolutional Neural Network)</h3><p><strong>CNN</strong>（卷积神经网络）是一种以卷积层为核心的神经网络。一般认为，卷积层是一种良好的从二维图像中提取特征（feature）的结构，因此<strong>CNN</strong>被广泛应用于图像识别领域（CV，computer vision and pattern recognition），从一开始的Alex-Net（开启了神经网络的时代）到Res-Net（the first very deep network)。一个简单的<strong>CNN</strong>可以由以下单位组成：</p>
+<h4 id="Convolutional-Layer"><a href="#Convolutional-Layer" class="headerlink" title="Convolutional Layer"></a>Convolutional Layer</h4><p>下面简单说明卷积层的常用参数：</p>
+<ul>
+<li>in_channels: 输入的channel的数量（可以认为是有多少张图片叠在一起输入，例如如果输入的是RGB图片娜美这一参数就是3）</li>
+<li>out_channels: 输出的channel的数量，可以理解为从之前的输入中提取出多少不同的feature</li>
+<li>size：卷积核的大小，即对多大的一个子矩形进行聚合</li>
+<li>stride：步长，每多少行多少列进行一次卷积操作</li>
+<li>padding：在图像的边缘补充的空白，一般要么为0，要么设置为size的一半（这样可以让新的图像的大小恰好按照size进行划分）</li>
+</ul>
+<h4 id="Pooling-Layer"><a href="#Pooling-Layer" class="headerlink" title="Pooling Layer"></a>Pooling Layer</h4><p>池化层，常用的就是对一个子矩形求最大值，目的是为了缩小图片的大小以减少参数</p>
+<h4 id="Fully-Connected-Layer"><a href="#Fully-Connected-Layer" class="headerlink" title="Fully-Connected Layer"></a>Fully-Connected Layer</h4><p>全连接层，本质就是一个矩阵；在最后一层往往使用全连接层来实现分类，而前面的所有结构都可以视为提取特征</p>
+<h4 id="Activation-Function"><a href="#Activation-Function" class="headerlink" title="Activation Function"></a>Activation Function</h4><p>激活函数通常是一个非线性函数，在实践中最常见的为<strong>ReLU</strong>(Rectified Linear Unit)。卷积层+激活函数、全连接层+激活函数（常称为MLP）都被视为是提取feature的方式。</p>
+<h3 id="Code"><a href="#Code" class="headerlink" title="Code"></a>Code</h3><h4 id="Pytorch-Fundamental"><a href="#Pytorch-Fundamental" class="headerlink" title="Pytorch Fundamental"></a>Pytorch Fundamental</h4><blockquote>
+<p>常用的包有<strong>torch</strong>, <strong>torch.nn</strong> (imported as nn) 和 <strong>torch.nn.functional</strong> (imported as F)。<strong>torch.nn</strong>中包含了常用的神经网络层结构；<strong>torch.nn.functional</strong>中包含了许多常用的函数；更多的用法可以在<a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/index.html">官方文档</a>找到，在<a href="/2021/01/28/Pytorch-Intro/" title="这篇文章">这篇文章</a>中也有更多的介绍。</p>
+</blockquote>
+<h5 id="Tensor-Reshape"><a href="#Tensor-Reshape" class="headerlink" title="Tensor Reshape"></a>Tensor Reshape</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">torch.cat((tensor1, tensor2, ..., tesnorN), dim) <span class="comment">#在dim维度拼接多个tensor</span></span><br><span class="line">torch.flatten(x, dim) <span class="comment">#将x在dim维度展开</span></span><br><span class="line">x.view(a, b, ...) <span class="comment">#将x变形为a*b*...，具体见官方文档</span></span><br><span class="line">x.squeeze(dim) <span class="comment">#如果dim这一维大小为1，则直接缩掉这一维</span></span><br><span class="line">x.unsqueeze(dim) <span class="comment">#在dim这一维前加上大小为1的一维</span></span><br></pre></td></tr></table></figure>
+<h5 id="Binary-Operation-for-Tensor"><a href="#Binary-Operation-for-Tensor" class="headerlink" title="Binary Operation for Tensor"></a>Binary Operation for Tensor</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">x * y <span class="comment">#逐位相乘</span></span><br><span class="line">x @ y <span class="comment">#矩阵乘法</span></span><br><span class="line">x.eq(y) <span class="comment">#逐个比较，返回bool tensor</span></span><br></pre></td></tr></table></figure>
+<h5 id="Monadic-Operation-for-Tensor"><a href="#Monadic-Operation-for-Tensor" class="headerlink" title="Monadic Operation for Tensor"></a>Monadic Operation for Tensor</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">x.item() <span class="comment">#将一个只含有一个元素的tensor转化为单个元素（float，int等等）</span></span><br><span class="line">x.<span class="built_in">sum</span>(); x.mean(); x.std(); x.var(); <span class="comment">#求和；均值；标准差；方差</span></span><br><span class="line">x.argmax(dim) <span class="comment">#对dim维度求最大值，返回一个维度-1的tensor</span></span><br><span class="line">x.<span class="built_in">max</span>(dim) <span class="comment">#返回两个tensor，第一个是value，第二个相当于x.argmax(dim)</span></span><br><span class="line">x.size() <span class="comment">#用于查看x的形状，可以传入参数dim查看特定维度的长度</span></span><br></pre></td></tr></table></figure>
+<h4 id="Construct-Neural-Network"><a href="#Construct-Neural-Network" class="headerlink" title="Construct Neural Network"></a>Construct Neural Network</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CNN</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(CNN, self).__init__()</span><br><span class="line">        self.conv1 = nn.Conv2d(<span class="number">1</span>, <span class="number">32</span>, <span class="number">3</span>, padding=<span class="number">1</span>)</span><br><span class="line">        self.conv2 = nn.Conv2d(<span class="number">32</span>, <span class="number">64</span>, <span class="number">3</span>, padding=<span class="number">1</span>)</span><br><span class="line">        self.fc1 = nn.Linear(<span class="number">64</span> * <span class="number">7</span> * <span class="number">7</span>, <span class="number">256</span>)</span><br><span class="line">        <span class="comment">#Images in MNIST is 1 * 28 * 28</span></span><br><span class="line">        self.fc2 = nn.Linear(<span class="number">256</span>, <span class="number">10</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        x = F.relu(self.conv1(x))</span><br><span class="line">        x = F.max_pool2d(x, <span class="number">2</span>)</span><br><span class="line">        x = F.relu(self.conv2(x))</span><br><span class="line">        x = F.max_pool2d(x, <span class="number">2</span>)</span><br><span class="line">        x = torch.flatten(x, <span class="number">1</span>)</span><br><span class="line">        x = F.relu(self.fc1(x))</span><br><span class="line">        <span class="keyword">return</span> self.fc2(x)</span><br></pre></td></tr></table></figure>
+<h5 id="Convolutional-Layer-1"><a href="#Convolutional-Layer-1" class="headerlink" title="Convolutional Layer"></a>Convolutional Layer</h5><p><strong>nn.Conv2d</strong>的前三个参数为in_channels, out_channels和size；像size, stride, padding这样的参数如果之传入一个数$x$，相当于传入$(x,x)$</p>
+<h4 id="Train"><a href="#Train" class="headerlink" title="Train"></a>Train</h4><p>在<strong>torch.optim</strong>中可以使用多种不同的优化器，最常用的就是<strong>Adam</strong>，同样也可以用<strong>SGD</strong>进行训练</p>
+<p>以<strong>SGD</strong>为例，用这样的方法来获得一个优化器，<strong>lr</strong>表示<strong>learning rate</strong>，是一个可以调整的超参；<strong>weight_decay</strong>用于防止overfitting，一般设置一个很小的数即可</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">optimizer = torch.optim.SGD(model.parameters(), lr=<span class="number">0.01</span>, weight_decay=<span class="number">1e-7</span>)</span><br></pre></td></tr></table></figure>
+<p>然后获取了一个batch的数据后，用下面的代码进行更新</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">loss = some value based on loss function</span><br><span class="line">optimizer.zero_grad() <span class="comment">#pytorch中的梯度会累积，因此每次更新前需要清空</span></span><br><span class="line">loss.backward() <span class="comment">#pytorch会自动计算梯度</span></span><br><span class="line">optimizer.step()</span><br></pre></td></tr></table></figure>
+<h4 id="Code-on-Github"><a href="#Code-on-Github" class="headerlink" title="Code on Github"></a>Code on Github</h4><p>Full version is available on <a target="_blank" rel="noopener" href="https://github.com/lych1233/Codes-for-RL-ML-Algorithms/tree/master/simple-CNN">github</a></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/01/27/Install-Packages/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yancheng Liang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lych_cys">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/27/Install-Packages/" class="post-title-link" itemprop="url">Packages Installation （在conda环境下安装Rl/ML需要的软件包）</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-27 17:57:14" itemprop="dateCreated datePublished" datetime="2021-01-27T17:57:14+08:00">2021-01-27</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-01-28 12:57:02" itemprop="dateModified" datetime="2021-01-28T12:57:02+08:00">2021-01-28</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>安装<strong>Machine Learning</strong>和<strong>Reinforcement Learning</strong>所需要的包</p>
+<h3 id="Install-Pytorch"><a href="#Install-Pytorch" class="headerlink" title="Install Pytorch"></a>Install Pytorch</h3><p><strong>Pytorch</strong>和<strong>tensorflow</strong>是两大主流的机器学习库</p>
+<blockquote>
+<p>首先用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda activate</span><br></pre></td></tr></table></figure>
+
+<p>进入需要安装<strong>pytorch</strong>的环境</p>
+<p>可以从<strong>pytorch</strong><a href="">官网</a>中找到需要的安装命令。注意选择正确的<strong>cuda</strong>版本（如果没有<strong>gpu</strong>则选择<strong>cpu</strong>版）。一个基于<strong>cuda11.0</strong>的安装命令为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda install pytorch torchvision torchaudio cudatoolkit=11.0 -c pytorch</span><br></pre></td></tr></table></figure>
+
+<p>如果官网下载速度太慢，可以删去 -c pytorch，这样就会从.condarc文件中的channel下载，如果已经配置了清华镜像（见<a href="/2021/01/27/Install-Env/" title="上一篇">上一篇</a>），则可以从清华镜像渠道下载</p>
+</blockquote>
+<p>安装完成后，进入<strong>python</strong>使用</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br></pre></td></tr></table></figure>
+<p>检查是否安装成功</p>
+<h3 id="Install-Gym"><a href="#Install-Gym" class="headerlink" title="Install Gym"></a>Install Gym</h3><blockquote>
+<p><a target="_blank" rel="noopener" href="http://gym.openai.com/">Gym</a>是openAI开发的包含一系列RL环境的库，使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install gym</span><br></pre></td></tr></table></figure>
+<p>安装</p>
+</blockquote>
+<p><strong>Gym</strong>内的<strong>Atari Games</strong>是<strong>Reinforcement Learning</strong>最重要的benchmark</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/01/27/Install-Env/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yancheng Liang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lych_cys">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/27/Install-Env/" class="post-title-link" itemprop="url">Environment Installation （使用conda配置环境）</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-27 15:22:27" itemprop="dateCreated datePublished" datetime="2021-01-27T15:22:27+08:00">2021-01-27</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-01-28 00:42:37" itemprop="dateModified" datetime="2021-01-28T00:42:37+08:00">2021-01-28</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h3 id="Why-Conda"><a href="#Why-Conda" class="headerlink" title="Why Conda?"></a>Why Conda?</h3><blockquote>
+<p><strong>conda</strong> 可以用于管理软件包（package），尤其是<strong>python</strong>的软件包，可以在<strong>conda</strong>的不同环境（environment）下安装每个环境所需要的package，这样就不会互相干扰，并且易于管理。例如，如果要同时安装<strong>python2</strong>和<strong>python3</strong>，就可以在<strong>conda</strong>下开两个环境分别安装，在调用时启动对应的环境即可。</p>
+</blockquote>
+<h4 id="Anaconda-amp-Miniconda"><a href="#Anaconda-amp-Miniconda" class="headerlink" title="Anaconda &amp; Miniconda"></a>Anaconda &amp; Miniconda</h4><ul>
+<li><strong>Anaconda</strong>包含了一些常用的软件包，而<strong>miniconda</strong>则只有<strong>python</strong>和<strong>conda</strong>；一般可以直接安装<strong>miniconda</strong>然后再装需要的软件包</li>
+</ul>
+<h3 id="Install-Miniconda"><a href="#Install-Miniconda" class="headerlink" title="Install Miniconda"></a>Install Miniconda</h3><blockquote>
+<p><strong>Miniconda</strong>的下载包可以从官网 <a target="_blank" rel="noopener" href="https://repo.anaconda.com/miniconda/">https://repo.anaconda.com/miniconda/</a> 找到，里面有不同的版本。这里以下载最新版<strong>minconda3</strong>为例，其余的可以从上面的网站找到对应的下载方式。如果官网下载太慢，可以尝试从清华镜像<a target="_blank" rel="noopener" href="https://mirror.tuna.tsinghua.edu.cn/anaconda/miniconda/">https://mirror.tuna.tsinghua.edu.cn/anaconda/miniconda/</a> 下载，只需要将之前官网的网址完全用这个替代即可。</p>
+</blockquote>
+<h4 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h4><p><a target="_blank" rel="noopener" href="https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe">Win版（64位，最新版miniconda3）</a>可以直接点击下载，然后进行安装。</p>
+<h4 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h4><p>Linux可以使用<strong>wget</strong>下载</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -c https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh</span><br></pre></td></tr></table></figure>
+<p>然后使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash Miniconda3-latest-Linux-x86_64.sh</span><br></pre></td></tr></table></figure>
+<p>进行安装。</p>
+<h3 id="Conda的基本操作"><a href="#Conda的基本操作" class="headerlink" title="Conda的基本操作"></a>Conda的基本操作</h3><h4 id="进入base环境"><a href="#进入base环境" class="headerlink" title="进入base环境"></a>进入base环境</h4><p>找到<strong>miniconda</strong>安装的位置加入到系统的<strong>path</strong>变量中（这一步可能在安装的时候已经完成了），然后在命令行中输入</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda activate</span><br></pre></td></tr></table></figure>
+<p>可以看到在最左侧出现（base）字样，如下图所示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(bash) ...&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="添加清华镜像Channel"><a href="#添加清华镜像Channel" class="headerlink" title="添加清华镜像Channel"></a>添加清华镜像Channel</h4><p>如果在国内使用**<em>pip**</em>下载，使用默认渠道速度较慢，因此可以通过如下方式添加清华镜像：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/</span><br><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/</span><br></pre></td></tr></table></figure>
+<p>打开.condarc文件（一般都在<strong>用户/username</strong>下），应该可以看到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">channels:</span><br><span class="line">  - https:&#x2F;&#x2F;mirrors.tuna.tsinghua.edu.cn&#x2F;anaconda&#x2F;pkgs&#x2F;main&#x2F;</span><br><span class="line">  - https:&#x2F;&#x2F;mirrors.tuna.tsinghua.edu.cn&#x2F;anaconda&#x2F;pkgs&#x2F;free&#x2F;</span><br><span class="line">  - defaults</span><br></pre></td></tr></table></figure>
+<h4 id="Create-A-New-Environment"><a href="#Create-A-New-Environment" class="headerlink" title="Create A New Environment"></a>Create A New Environment</h4><p>使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda create -n new_env python=3.7</span><br></pre></td></tr></table></figure>
+<p>就可以创建一个<strong>python</strong>版本为3.7的名为<strong>new_env</strong>的环境（python=3.7这一项非必要）</p>
+<h4 id="进入（切换为）、退出、删除某个environment"><a href="#进入（切换为）、退出、删除某个environment" class="headerlink" title="进入（切换为）、退出、删除某个environment"></a>进入（切换为）、退出、删除某个environment</h4><h5 id="进入"><a href="#进入" class="headerlink" title="进入"></a>进入</h5><blockquote>
+<p>使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda activate new_env</span><br></pre></td></tr></table></figure>
+<p>进入或者切换到<strong>new_env</strong>这个环境</p>
+</blockquote>
+<h5 id="退出"><a href="#退出" class="headerlink" title="退出"></a>退出</h5><blockquote>
+<p>使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda deactivate</span><br></pre></td></tr></table></figure>
+<p>退出当前环境</p>
+</blockquote>
+<h5 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h5><blockquote>
+<p>使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda remove -n new_env --all</span><br></pre></td></tr></table></figure>
+<p>删除<strong>new_env</strong>这个环境</p>
+</blockquote>
+
       
     </div>
 
@@ -406,6 +971,39 @@
   
 
 
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
 
 
 

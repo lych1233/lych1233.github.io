@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"lych1233.github.io","root":"/","images":"/images","scheme":"Pisces","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+<meta name="description" content="不定期更新 Useful Instructions in PytorchTensor Reshape&#x2F;Concatenate1234567torch.cat((tensor1, tensor2, ..., tesnorN), dim) #在dim维度拼接多个tensortorch.stack((tensor1, tensor2, ..., tesnorN), dim) #在dim维度叠加多个ten">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Pytorch Fundamental">
+<meta property="og:url" content="http://lych1233.github.io/2021/01/28/Pytorch-Intro/index.html">
+<meta property="og:site_name" content="lych_cys">
+<meta property="og:description" content="不定期更新 Useful Instructions in PytorchTensor Reshape&#x2F;Concatenate1234567torch.cat((tensor1, tensor2, ..., tesnorN), dim) #在dim维度拼接多个tensortorch.stack((tensor1, tensor2, ..., tesnorN), dim) #在dim维度叠加多个ten">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-01-28T09:21:45.390Z">
+<meta property="article:modified_time" content="2021-02-12T14:09:02.428Z">
+<meta property="article:author" content="Yancheng Liang">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://lych1233.github.io/2021/01/28/Pytorch-Intro/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>Pytorch Fundamental | lych_cys</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">lych_cys</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">It works!</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-ai"><a href="/AI/" rel="section"><i class="fas fa-robot fa-fw"></i>AI</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="far fa-question-circle fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Useful-Instructions-in-Pytorch"><span class="nav-number">1.</span> <span class="nav-text">Useful Instructions in Pytorch</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Tensor-Reshape-Concatenate"><span class="nav-number">1.0.1.</span> <span class="nav-text">Tensor Reshape&#x2F;Concatenate</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Binary-Operation-for-Tensor"><span class="nav-number">1.0.2.</span> <span class="nav-text">Binary Operation for Tensor</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Monadic-Operation-for-Tensor"><span class="nav-number">1.0.3.</span> <span class="nav-text">Monadic Operation for Tensor</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#A-Powerful-Sampling-Method-Based-on-Log-Probablities"><span class="nav-number">1.0.4.</span> <span class="nav-text">A Powerful Sampling Method Based on Log-Probablities</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Write-Efficient-Code"><span class="nav-number">2.</span> <span class="nav-text">Write Efficient Code</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Do-not-transfer-data-between-CPU-and-GPU-frequently"><span class="nav-number">2.1.</span> <span class="nav-text">Do not transfer data between CPU and GPU frequently</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Random-sample-is-Slow"><span class="nav-number">2.2.</span> <span class="nav-text">Random.sample() is Slow</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Numpy-to-Tensor"><span class="nav-number">2.3.</span> <span class="nav-text">Numpy to Tensor</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Yancheng Liang"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Yancheng Liang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/lych1233" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;lych1233" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/lych1233@gmail.com" title="E-Mail → lych1233@gmail.com"><i class="fas fa-envelope-square fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/01/28/Pytorch-Intro/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yancheng Liang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lych_cys">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Pytorch Fundamental
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-28 17:21:45" itemprop="dateCreated datePublished" datetime="2021-01-28T17:21:45+08:00">2021-01-28</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-02-12 22:09:02" itemprop="dateModified" datetime="2021-02-12T22:09:02+08:00">2021-02-12</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>不定期更新</p>
+<h3 id="Useful-Instructions-in-Pytorch"><a href="#Useful-Instructions-in-Pytorch" class="headerlink" title="Useful Instructions in Pytorch"></a>Useful Instructions in Pytorch</h3><h5 id="Tensor-Reshape-Concatenate"><a href="#Tensor-Reshape-Concatenate" class="headerlink" title="Tensor Reshape/Concatenate"></a>Tensor Reshape/Concatenate</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">torch.cat((tensor1, tensor2, ..., tesnorN), dim) <span class="comment">#在dim维度拼接多个tensor</span></span><br><span class="line">torch.stack((tensor1, tensor2, ..., tesnorN), dim) <span class="comment">#在dim维度叠加多个tensor</span></span><br><span class="line"><span class="comment">#上述两个操作可以使用tuple或者list传输tensors</span></span><br><span class="line">torch.flatten(x, dim) <span class="comment">#将x在dim维度展开</span></span><br><span class="line">x.view(a, b, ...) <span class="comment">#将x变形为a*b*...，具体要求见官方文档</span></span><br><span class="line">x.squeeze(dim) <span class="comment">#如果dim这一维大小为1，则直接缩掉这一维</span></span><br><span class="line">x.unsqueeze(dim) <span class="comment">#在dim这一维前加上大小为1的一维</span></span><br></pre></td></tr></table></figure>
+<h5 id="Binary-Operation-for-Tensor"><a href="#Binary-Operation-for-Tensor" class="headerlink" title="Binary Operation for Tensor"></a>Binary Operation for Tensor</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">x * y <span class="comment">#逐位相乘</span></span><br><span class="line">x @ y <span class="comment">#矩阵乘法</span></span><br><span class="line">x.eq(y) <span class="comment">#逐个比较，返回bool tensor</span></span><br><span class="line">x.gather(dim=<span class="number">1</span>, y) <span class="comment">#如果x为m*n，y为m*1，那么返回一个m*1的x[y[k][0]][k]，表示对dim维度做提取</span></span><br></pre></td></tr></table></figure>
+<h5 id="Monadic-Operation-for-Tensor"><a href="#Monadic-Operation-for-Tensor" class="headerlink" title="Monadic Operation for Tensor"></a>Monadic Operation for Tensor</h5><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">x.item() <span class="comment">#将一个只含有一个元素的tensor转化为单个元素（float，int等等）</span></span><br><span class="line">x.<span class="built_in">sum</span>(); x.mean(); x.std(); x.var(); <span class="comment">#求和；均值；标准差；方差</span></span><br><span class="line">x.argmax(dim) <span class="comment">#对dim维度求最大值，返回一个维度-1的tensor</span></span><br><span class="line">x.<span class="built_in">max</span>(dim) <span class="comment">#返回两个tensor，第一个是value，第二个相当于x.argmax(dim)</span></span><br><span class="line">x.size() <span class="comment">#用于查看x的形状，可以传入参数dim查看特定维度的长度</span></span><br><span class="line">x.detach() <span class="comment">#将x脱离梯度</span></span><br><span class="line">x.to(device) <span class="comment">#将x运输到对应的设备</span></span><br></pre></td></tr></table></figure>
+<h5 id="A-Powerful-Sampling-Method-Based-on-Log-Probablities"><a href="#A-Powerful-Sampling-Method-Based-on-Log-Probablities" class="headerlink" title="A Powerful Sampling Method Based on Log-Probablities"></a>A Powerful Sampling Method Based on Log-Probablities</h5><p>This method is found in openai baseline /common/distributions.py/CategoricalPd.sample</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">n = <span class="number">10</span></span><br><span class="line">logits = torch.randn(n)</span><br><span class="line">random_id = (logits - (-torch.rand(n).log()).log()).argmax().item()</span><br></pre></td></tr></table></figure>
+<p>2x speed compared with</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">n = <span class="number">10</span></span><br><span class="line">logits = torch.randn(n)</span><br><span class="line">p = torch.softmax(logits, <span class="number">0</span>)</span><br><span class="line">random_id = torch.multinomial(p, <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="Write-Efficient-Code"><a href="#Write-Efficient-Code" class="headerlink" title="Write Efficient Code"></a>Write Efficient Code</h3><blockquote>
+<p>test is done on a RTX-2080 GPU chip</p>
+</blockquote>
+<h4 id="Do-not-transfer-data-between-CPU-and-GPU-frequently"><a href="#Do-not-transfer-data-between-CPU-and-GPU-frequently" class="headerlink" title="Do not transfer data between CPU and GPU frequently"></a>Do not transfer data between CPU and GPU frequently</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">f1</span>():</span></span><br><span class="line">    a = torch.randn((N, M))</span><br><span class="line">    a = a.to(device)</span><br><span class="line">    <span class="keyword">return</span> a</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">f2</span>():</span></span><br><span class="line">    a = torch.randn((N, M), device=device)</span><br><span class="line">    <span class="keyword">return</span> a</span><br></pre></td></tr></table></figure>
+<p>f2 is 100x faster than f1</p>
+<h4 id="Random-sample-is-Slow"><a href="#Random-sample-is-Slow" class="headerlink" title="Random.sample() is Slow"></a>Random.sample() is Slow</h4><p>Use</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">idx = np.random.choice(<span class="built_in">len</span>(a), size)</span><br><span class="line">samples = [a[x] <span class="keyword">for</span> x <span class="keyword">in</span> idx]</span><br></pre></td></tr></table></figure>
+<p>instead of</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">samples = random.sample(a, size)</span><br></pre></td></tr></table></figure>
+<p>which costs 5x time.</p>
+<h4 id="Numpy-to-Tensor"><a href="#Numpy-to-Tensor" class="headerlink" title="Numpy to Tensor"></a>Numpy to Tensor</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a = torch.tensor(b) <span class="comment">#value copy</span></span><br><span class="line">a = torch.as_tensor(b) <span class="comment">#refference copy</span></span><br><span class="line">a = torch.from_numpy(b) <span class="comment">#a little bit faster than the above one but works for numpy only</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/01/28/DQN/" rel="prev" title="DQN (Deep Q-Network)">
+                  <i class="fa fa-chevron-left"></i> DQN (Deep Q-Network)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/02/02/PolicyGradient/" rel="next" title="Vanilla Policy Gradient (with Baseline)">
+                  Vanilla Policy Gradient (with Baseline) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yancheng Liang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+</body>
+</html>

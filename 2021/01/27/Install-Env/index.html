@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"lych1233.github.io","root":"/","images":"/images","scheme":"Pisces","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+<meta name="description" content="Why Conda? conda 可以用于管理软件包（package），尤其是python的软件包，可以在conda的不同环境（environment）下安装每个环境所需要的package，这样就不会互相干扰，并且易于管理。例如，如果要同时安装python2和python3，就可以在conda下开两个环境分别安装，在调用时启动对应的环境即可。  Anaconda &amp; Miniconda A">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Environment Installation （使用conda配置环境）">
+<meta property="og:url" content="http://lych1233.github.io/2021/01/27/Install-Env/index.html">
+<meta property="og:site_name" content="lych_cys">
+<meta property="og:description" content="Why Conda? conda 可以用于管理软件包（package），尤其是python的软件包，可以在conda的不同环境（environment）下安装每个环境所需要的package，这样就不会互相干扰，并且易于管理。例如，如果要同时安装python2和python3，就可以在conda下开两个环境分别安装，在调用时启动对应的环境即可。  Anaconda &amp; Miniconda A">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-01-27T07:22:27.458Z">
+<meta property="article:modified_time" content="2021-01-27T16:42:37.874Z">
+<meta property="article:author" content="Yancheng Liang">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://lych1233.github.io/2021/01/27/Install-Env/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>Environment Installation （使用conda配置环境） | lych_cys</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">lych_cys</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">It works!</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-ai"><a href="/AI/" rel="section"><i class="fas fa-robot fa-fw"></i>AI</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="far fa-question-circle fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Why-Conda"><span class="nav-number">1.</span> <span class="nav-text">Why Conda?</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Anaconda-amp-Miniconda"><span class="nav-number">1.1.</span> <span class="nav-text">Anaconda &amp; Miniconda</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Install-Miniconda"><span class="nav-number">2.</span> <span class="nav-text">Install Miniconda</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Windows"><span class="nav-number">2.1.</span> <span class="nav-text">Windows</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux"><span class="nav-number">2.2.</span> <span class="nav-text">Linux</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Conda%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">Conda的基本操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E5%85%A5base%E7%8E%AF%E5%A2%83"><span class="nav-number">3.1.</span> <span class="nav-text">进入base环境</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E6%B8%85%E5%8D%8E%E9%95%9C%E5%83%8FChannel"><span class="nav-number">3.2.</span> <span class="nav-text">添加清华镜像Channel</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Create-A-New-Environment"><span class="nav-number">3.3.</span> <span class="nav-text">Create A New Environment</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E5%85%A5%EF%BC%88%E5%88%87%E6%8D%A2%E4%B8%BA%EF%BC%89%E3%80%81%E9%80%80%E5%87%BA%E3%80%81%E5%88%A0%E9%99%A4%E6%9F%90%E4%B8%AAenvironment"><span class="nav-number">3.4.</span> <span class="nav-text">进入（切换为）、退出、删除某个environment</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%BF%9B%E5%85%A5"><span class="nav-number">3.4.1.</span> <span class="nav-text">进入</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%80%80%E5%87%BA"><span class="nav-number">3.4.2.</span> <span class="nav-text">退出</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%A0%E9%99%A4"><span class="nav-number">3.4.3.</span> <span class="nav-text">删除</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Yancheng Liang"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Yancheng Liang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/lych1233" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;lych1233" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/lych1233@gmail.com" title="E-Mail → lych1233@gmail.com"><i class="fas fa-envelope-square fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/01/27/Install-Env/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yancheng Liang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lych_cys">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Environment Installation （使用conda配置环境）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-01-27 15:22:27" itemprop="dateCreated datePublished" datetime="2021-01-27T15:22:27+08:00">2021-01-27</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-01-28 00:42:37" itemprop="dateModified" datetime="2021-01-28T00:42:37+08:00">2021-01-28</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h3 id="Why-Conda"><a href="#Why-Conda" class="headerlink" title="Why Conda?"></a>Why Conda?</h3><blockquote>
+<p><strong>conda</strong> 可以用于管理软件包（package），尤其是<strong>python</strong>的软件包，可以在<strong>conda</strong>的不同环境（environment）下安装每个环境所需要的package，这样就不会互相干扰，并且易于管理。例如，如果要同时安装<strong>python2</strong>和<strong>python3</strong>，就可以在<strong>conda</strong>下开两个环境分别安装，在调用时启动对应的环境即可。</p>
+</blockquote>
+<h4 id="Anaconda-amp-Miniconda"><a href="#Anaconda-amp-Miniconda" class="headerlink" title="Anaconda &amp; Miniconda"></a>Anaconda &amp; Miniconda</h4><ul>
+<li><strong>Anaconda</strong>包含了一些常用的软件包，而<strong>miniconda</strong>则只有<strong>python</strong>和<strong>conda</strong>；一般可以直接安装<strong>miniconda</strong>然后再装需要的软件包</li>
+</ul>
+<h3 id="Install-Miniconda"><a href="#Install-Miniconda" class="headerlink" title="Install Miniconda"></a>Install Miniconda</h3><blockquote>
+<p><strong>Miniconda</strong>的下载包可以从官网 <a target="_blank" rel="noopener" href="https://repo.anaconda.com/miniconda/">https://repo.anaconda.com/miniconda/</a> 找到，里面有不同的版本。这里以下载最新版<strong>minconda3</strong>为例，其余的可以从上面的网站找到对应的下载方式。如果官网下载太慢，可以尝试从清华镜像<a target="_blank" rel="noopener" href="https://mirror.tuna.tsinghua.edu.cn/anaconda/miniconda/">https://mirror.tuna.tsinghua.edu.cn/anaconda/miniconda/</a> 下载，只需要将之前官网的网址完全用这个替代即可。</p>
+</blockquote>
+<h4 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h4><p><a target="_blank" rel="noopener" href="https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe">Win版（64位，最新版miniconda3）</a>可以直接点击下载，然后进行安装。</p>
+<h4 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h4><p>Linux可以使用<strong>wget</strong>下载</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -c https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh</span><br></pre></td></tr></table></figure>
+<p>然后使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash Miniconda3-latest-Linux-x86_64.sh</span><br></pre></td></tr></table></figure>
+<p>进行安装。</p>
+<h3 id="Conda的基本操作"><a href="#Conda的基本操作" class="headerlink" title="Conda的基本操作"></a>Conda的基本操作</h3><h4 id="进入base环境"><a href="#进入base环境" class="headerlink" title="进入base环境"></a>进入base环境</h4><p>找到<strong>miniconda</strong>安装的位置加入到系统的<strong>path</strong>变量中（这一步可能在安装的时候已经完成了），然后在命令行中输入</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda activate</span><br></pre></td></tr></table></figure>
+<p>可以看到在最左侧出现（base）字样，如下图所示</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(bash) ...&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="添加清华镜像Channel"><a href="#添加清华镜像Channel" class="headerlink" title="添加清华镜像Channel"></a>添加清华镜像Channel</h4><p>如果在国内使用**<em>pip**</em>下载，使用默认渠道速度较慢，因此可以通过如下方式添加清华镜像：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/</span><br><span class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/</span><br></pre></td></tr></table></figure>
+<p>打开.condarc文件（一般都在<strong>用户/username</strong>下），应该可以看到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">channels:</span><br><span class="line">  - https:&#x2F;&#x2F;mirrors.tuna.tsinghua.edu.cn&#x2F;anaconda&#x2F;pkgs&#x2F;main&#x2F;</span><br><span class="line">  - https:&#x2F;&#x2F;mirrors.tuna.tsinghua.edu.cn&#x2F;anaconda&#x2F;pkgs&#x2F;free&#x2F;</span><br><span class="line">  - defaults</span><br></pre></td></tr></table></figure>
+<h4 id="Create-A-New-Environment"><a href="#Create-A-New-Environment" class="headerlink" title="Create A New Environment"></a>Create A New Environment</h4><p>使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda create -n new_env python=3.7</span><br></pre></td></tr></table></figure>
+<p>就可以创建一个<strong>python</strong>版本为3.7的名为<strong>new_env</strong>的环境（python=3.7这一项非必要）</p>
+<h4 id="进入（切换为）、退出、删除某个environment"><a href="#进入（切换为）、退出、删除某个environment" class="headerlink" title="进入（切换为）、退出、删除某个environment"></a>进入（切换为）、退出、删除某个environment</h4><h5 id="进入"><a href="#进入" class="headerlink" title="进入"></a>进入</h5><blockquote>
+<p>使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda activate new_env</span><br></pre></td></tr></table></figure>
+<p>进入或者切换到<strong>new_env</strong>这个环境</p>
+</blockquote>
+<h5 id="退出"><a href="#退出" class="headerlink" title="退出"></a>退出</h5><blockquote>
+<p>使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda deactivate</span><br></pre></td></tr></table></figure>
+<p>退出当前环境</p>
+</blockquote>
+<h5 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h5><blockquote>
+<p>使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda remove -n new_env --all</span><br></pre></td></tr></table></figure>
+<p>删除<strong>new_env</strong>这个环境</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/01/18/hello-world/" rel="prev" title="Hello World">
+                  <i class="fa fa-chevron-left"></i> Hello World
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/01/27/Install-Packages/" rel="next" title="Packages Installation （在conda环境下安装Rl/ML需要的软件包）">
+                  Packages Installation （在conda环境下安装Rl/ML需要的软件包） <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yancheng Liang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+</body>
+</html>
