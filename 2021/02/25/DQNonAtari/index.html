@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"lych1233.github.io","root":"/","images":"/images","scheme":"Pisces","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+<meta name="description" content="Environment Wrapper for Atari参考这里的介绍 Tricks in RainbowRainbow一文总结了DQN的多个tricks并将它们合在一起，或得了很好的效果 接下来的一些技巧基本按照发布时间排序  定义：用$$\theta,\theta^-$$表示online network和target network的参数，  Multi-step Reward 这个idea">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DQN on Atari-2600 Games (rainbow, count-based DQN)">
+<meta property="og:url" content="http://lych1233.github.io/2021/02/25/DQNonAtari/index.html">
+<meta property="og:site_name" content="lych_cys">
+<meta property="og:description" content="Environment Wrapper for Atari参考这里的介绍 Tricks in RainbowRainbow一文总结了DQN的多个tricks并将它们合在一起，或得了很好的效果 接下来的一些技巧基本按照发布时间排序  定义：用$$\theta,\theta^-$$表示online network和target network的参数，  Multi-step Reward 这个idea">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-02-25T14:13:40.985Z">
+<meta property="article:modified_time" content="2021-04-02T03:32:41.166Z">
+<meta property="article:author" content="Yancheng Liang">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://lych1233.github.io/2021/02/25/DQNonAtari/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>DQN on Atari-2600 Games (rainbow, count-based DQN) | lych_cys</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">lych_cys</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">It works!</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-ai"><a href="/AI/" rel="section"><i class="fas fa-robot fa-fw"></i>AI</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="far fa-question-circle fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Environment-Wrapper-for-Atari"><span class="nav-number">1.</span> <span class="nav-text">Environment Wrapper for Atari</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tricks-in-Rainbow"><span class="nav-number">2.</span> <span class="nav-text">Tricks in Rainbow</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Multi-step-Reward"><span class="nav-number">2.1.</span> <span class="nav-text">Multi-step Reward</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Double-Q-Learning"><span class="nav-number">2.2.</span> <span class="nav-text">Double Q-Learning</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Prioritized-Experience-Replay"><span class="nav-number">2.3.</span> <span class="nav-text">Prioritized Experience Replay</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Prioritization-Type"><span class="nav-number">2.3.1.</span> <span class="nav-text">Prioritization Type</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Importance-Sampling"><span class="nav-number">2.3.2.</span> <span class="nav-text">Importance Sampling</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dueling-Network"><span class="nav-number">2.4.</span> <span class="nav-text">Dueling Network</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Distributional-Learning"><span class="nav-number">2.5.</span> <span class="nav-text">Distributional Learning</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Noisy-Nets"><span class="nav-number">2.6.</span> <span class="nav-text">Noisy Nets</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Count-Based-DQN"><span class="nav-number">3.</span> <span class="nav-text">Count-Based DQN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Clipping"><span class="nav-number">4.</span> <span class="nav-text">Clipping</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Reward-Clipping"><span class="nav-number">4.1.</span> <span class="nav-text">Reward Clipping</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Gradient-Clipping"><span class="nav-number">4.2.</span> <span class="nav-text">Gradient Clipping</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementation"><span class="nav-number">5.</span> <span class="nav-text">Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Fundamentals"><span class="nav-number">5.1.</span> <span class="nav-text">Fundamentals</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Noisy-Layer"><span class="nav-number">5.2.</span> <span class="nav-text">Noisy Layer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Network-Architecture"><span class="nav-number">5.3.</span> <span class="nav-text">Network Architecture</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Yancheng Liang"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Yancheng Liang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/lych1233" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;lych1233" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/lych1233@gmail.com" title="E-Mail → lych1233@gmail.com"><i class="fas fa-envelope-square fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/02/25/DQNonAtari/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yancheng Liang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lych_cys">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DQN on Atari-2600 Games (rainbow, count-based DQN)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-02-25 22:13:40" itemprop="dateCreated datePublished" datetime="2021-02-25T22:13:40+08:00">2021-02-25</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-04-02 11:32:41" itemprop="dateModified" datetime="2021-04-02T11:32:41+08:00">2021-04-02</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h3 id="Environment-Wrapper-for-Atari"><a href="#Environment-Wrapper-for-Atari" class="headerlink" title="Environment Wrapper for Atari"></a>Environment Wrapper for Atari</h3><p>参考<a href="/2021/02/19/WrapEnv/" title="这里">这里</a>的介绍</p>
+<h3 id="Tricks-in-Rainbow"><a href="#Tricks-in-Rainbow" class="headerlink" title="Tricks in Rainbow"></a>Tricks in Rainbow</h3><p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1710.02298">Rainbow</a>一文总结了<strong>DQN</strong>的多个tricks并将它们合在一起，或得了很好的效果</p>
+<p>接下来的一些技巧基本按照发布时间排序</p>
+<blockquote>
+<p>定义：用$$\theta,\theta^-$$表示<strong>online network</strong>和<strong>target network</strong>的参数，</p>
+</blockquote>
+<h4 id="Multi-step-Reward"><a href="#Multi-step-Reward" class="headerlink" title="Multi-step Reward"></a>Multi-step Reward</h4><blockquote>
+<p>这个idea可能来源于一些较早的文献：<a target="_blank" rel="noopener" href="http://incompleteideas.net/papers/sutton-88-with-erratum.pdf">Reference 1</a>, <a target="_blank" rel="noopener" href="https://doc.lagout.org/science/Artificial%20Intelligence/Machine%20learning/Reinforcement%20Learning%20%20An%20Introduction%20-%20Richard%20S.%20Sutton%20%2C%20Andrew%20G.%20Barto.pdf">Reference 2</a></p>
+</blockquote>
+<p>在计算$Q^{tar}$时我们可以多计算几步：$$Q_\theta(s_t, a_t) \leftarrow \sum_{k=0}^{n-1} \gamma^kR(s_{t+k},a_{t+k}) + \max_{a’}Q_{\theta^-}(s_{t+n},a’)$$</p>
+<p>作为对比，普通的<strong>DQN</strong>其实就是$n=1$的情形</p>
+<h4 id="Double-Q-Learning"><a href="#Double-Q-Learning" class="headerlink" title="Double Q-Learning"></a>Double Q-Learning</h4><blockquote>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1509.06461">Double Q-Learning Paper</a></p>
+</blockquote>
+<p>一般的<strong>Q-Learning</strong>存在<strong>overerstimation</strong>的问题，这是由于本身估计的误差带来的，原文的一处定理表述如下：</p>
+<blockquote>
+<p>如果所有的<strong>action</strong>都满足$Q^*(s, a)=V^*(s)$，并且我们有一个估计满足$\mathbb E_a[\hat Q(s, a)-V^*(s)]=0,$ $\mathbb E_a[(\hat Q(s, a)-V^*(s))^2]=C$，那么$\max \hat Q(s, a) \ge V^*(s) + \sqrt{C/(m-1)}$；而如果使用<strong>double Q-learning</strong>则可以做到<strong>zero estimate</strong></p>
+</blockquote>
+<p>可以考虑这样一种情况，假设有两个在$[-1, 1]$均匀分布的数列$a_1,…,a_n,b_1,…,b_n$，那么：</p>
+<ul>
+<li>$\mathbb E_k[a_k] = \mathbb E_b[b_k]=0$</li>
+<li>$\mathbb E \max_k{a_k} = \int_{-1}^1 [\mathbb I\mid \exist k\ s.t. a_k\ge x]dx = \int_{-1}^1 1-(1+x)^n/2^n dx = (n-1)/(n+1)$</li>
+<li>如果是<strong>double Q-learning</strong>，则可以考虑为$\mathbb E [b_{k^*} \mid k^*=\arg\max_k a_k] = 0$</li>
+</ul>
+<p>由此我们可以看到<strong>double Q-learning</strong>可以缓解<strong>overestimation</strong>的问题</p>
+<p>在<strong>DQN</strong>中，我们原本对$Q^{tar}$的估计为$$Q^{tar}(s, a) = R(s, a) + \gamma\max_{a’} Q(s’, a’)$$；在<strong>Double DQN</strong>中，我们使用两个网络$Q_1,Q_2$，并且可以重写对$Q_1^{tar}$的估计$$Q_1^{tar} = R(s, a) + \gamma Q_2(s’, \arg\max_{a’} Q_1(s’, a’))$$，也就是说，我们用$Q_1$给出<strong>policy</strong> $a’$，然后用$Q_2$进行估值</p>
+<p>在实践中，我们可以自然地用<strong>target network</strong>作为另一个网络；因此我们可以将更新过程写成这样$$Q_\theta(s, a) \leftarrow R(s, a) + \gamma Q_{\theta^-}(s’, \arg\max_{a’} Q_\theta(s’, a’))$$</p>
+<h4 id="Prioritized-Experience-Replay"><a href="#Prioritized-Experience-Replay" class="headerlink" title="Prioritized Experience Replay"></a>Prioritized Experience Replay</h4><blockquote>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1511.05952">Prioritized Experience Replay Paper</a></p>
+<p>在<a href="/2021/02/19/ReplayBuffer/" title="这里">这里</a> 给出了一个实现</p>
+</blockquote>
+<p>对于每一个<strong>trainsition</strong>，我们计算一个<strong>priority weight</strong> $p_i$，一般为$p_i=\delta_i+\epsilon$ （$\delta$指TD-error），然后根据让$p_i$大的有更大的概率被选到</p>
+<h5 id="Prioritization-Type"><a href="#Prioritization-Type" class="headerlink" title="Prioritization Type"></a>Prioritization Type</h5><p>原文中提到了两种方法</p>
+<ul>
+<li><strong>rank-base prioritization</strong>：$$P(i)\propto rank(p_i)^{-1}$$</li>
+<li><strong>proportional prioritization</strong>：$P(i)\propto p_i^\alpha, \alpha\ge 0$</li>
+</ul>
+<p>两者在比较中没有明显差异，一般使用第二种</p>
+<h5 id="Importance-Sampling"><a href="#Importance-Sampling" class="headerlink" title="Importance Sampling"></a>Importance Sampling</h5><p>一般来说我们需要<strong>sample</strong>出的数据的分布和它在期望中的表示的分布是一致的，尤其是在训练快要收敛的时候，但是<strong>prioritzed sampling</strong>改变了原有的分布（造成了<strong>bias</strong>），因此可以考虑加入一个权重$w_i=(N^{-1}P(i)^{-1})^\beta$来抵消这种改变，当$\beta=1$时其实就是完全均匀的<strong>sampling</strong>；在实践中我们考虑让$\beta$从$\beta_0\to 1$变化来实现<strong>bias annealing</strong></p>
+<h4 id="Dueling-Network"><a href="#Dueling-Network" class="headerlink" title="Dueling Network"></a>Dueling Network</h4><blockquote>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1511.06581">Dueling Network Architecture Paper</a></p>
+</blockquote>
+<p>在某些局面，我们没有必要对每一个动作计算<strong>Q-function</strong>，因为可能做任何动作都无关痛痒；并且，判断做什么动作(<strong>policy</strong>)与判断当前局面的好坏(<strong>value estimate</strong>)可能需要关注不同的部分；因此，可以将<strong>Q-function</strong>转变为计算当前局面的价值$$V(s)$$与各个动作的<strong>advantage function</strong> $A(s, a)$</p>
+<p>首先用一个公用的feature extractor（通常是一系列的<strong>convolutional layers</strong>）提取<strong>feature</strong>，然后用两个<strong>stream</strong>（通常是两个MLP）分别得到$V(s), A(s, a)$，最后将这两项合并得到<strong>Q function</strong> $$Q(s, a) = V(s) +A(s, a) - |\mathcal A|^{-1}\sum_{a’} A(s, a’)$$</p>
+<blockquote>
+<p>原文中写到，如果直接按照定义计算$Q(s,a) = V(s) + A(s, a)$，我们就无法通过$Q$还原出对应的$V,A$，这样一个不可逆的表示方法会带来非常差的效果</p>
+<p>如果按照$V(s)=\max_a Q(s,a)$的定义，我们应该有$Q(s, a) = V(s) +A(s, a) - \max_{a’} A(s, a’)$，然而这种方法并没有取平均的方法在训练中稳定；作者尝试了用各种<strong>soft max</strong>替代<strong>max</strong>，最后认为只需要简单地用取平均的方法就够了</p>
+</blockquote>
+<h4 id="Distributional-Learning"><a href="#Distributional-Learning" class="headerlink" title="Distributional Learning"></a>Distributional Learning</h4><blockquote>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1707.06887">Distributional Perspective of Deep RL Paper</a> </p>
+</blockquote>
+<p>我们可以按照<strong>Q-function</strong>的定义（在当前策略下，在某个<strong>state</strong>采取某个<strong>action</strong>之后期望得到的<strong>discounted reward</strong>之和）将其重写为：$$Q(s, a) = \mathbb E[J] = \int x\mathbb P(J=x) dx，$$其中$J$是一个随机变量，表示之后的<strong>discounted reward</strong>的和</p>
+<p>在传统的<strong>DQN</strong>中，我们实际上只学习$\mathbb E[J]$，而在<strong>Distributional Learning</strong>中，我们学习$J$分布（$\mathbb P(J)$），通过学习额外的信息，我们能让<strong>DQN</strong>获得更好的效果</p>
+<p>实际上，如果我们定义$Z(s, a)$是$\mathbb P(J=x)$的<strong>cdf</strong>，那么可以用同样的方法定义一次更新：$$Z(s, a) [R(s, a)+\gamma x]\leftarrow Z(s’, a’^*)[x]$$，其中$a’*=\arg\max_{a’}Q(s, a)=\arg\max_{a’}\int 1-Z(s’, a’)[x] dx$</p>
+<p>很显然，在实践中是不可能维护一个连续的函数的，因此我们可以将连续变量转为离散变量；具体地，我们设置一系列的点（称为<em>atoms</em>或<em>support</em>）$V_{\min}=z_0,z_1,…,z_n=V_{\max}(z_{k+1}-z_k=z_k-z_{k-1}=\Delta z)$，然后只需要维护$p_0,…,p_n$，$p_k$表示$J$最后最接近$z_k$的概率；按照这些记号我们定义$p_j(s, a)$，表示一个基于当前状态和动作的离散概率分布，而离散概率分布可以较为轻松地通过神经网络获得</p>
+<p>在这种情况下，我们不适用平方差来作为<strong>loss</strong>，转而使用对于概率分布而言更为合理的<strong>cross entropy loss</strong>，或者说$KL(q\mid \mid p)$；假设我们想要计算$p_{0,…,n}(s, a)$对应的<strong>target probability distribution</strong>，那么对于$s’,a’<em>$中的每一个</em>support* $z_k$，它对应的值应该是$b_k = r + \gamma z_k$，但是这一在$z_0,,,z_k$中不一定能找到对应，因此我们找到$z_j\le b_k&lt;z_{j+1}$，并且令$q_j += p’<em>k(s, a)(z</em>{j+1}-b_k), q_{j+1}+=p’<em>k(s,a)(b_k-z_j)$，如此一来，我们就近似地找到了$q\approx p^{tar}$，并且用$\mathcal L = -\sum</em>{k=0}^n q_k\log p_k(s, a)进行更新</p>
+<h4 id="Noisy-Nets"><a href="#Noisy-Nets" class="headerlink" title="Noisy Nets"></a>Noisy Nets</h4><blockquote>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1706.10295">Noisy Networks Paper</a></p>
+</blockquote>
+<p>通过向网络中的全连接层添加随机性来<strong>explore</strong>，对于原本的一个<strong>Linear Layer</strong> $(w, b)$，我们将其变为 $$(\mu^w + \sigma^w\odot\epsilon^w, \mu^b + \sigma^b \odot \epsilon^b)$$（其中$\odot$表示逐位相乘），通过$\epsilon$来产生随机性，并且让网络通过学习$\sigma^w, \sigma^b$逐渐学会忽略掉噪音</p>
+<h3 id="Count-Based-DQN"><a href="#Count-Based-DQN" class="headerlink" title="Count-Based DQN"></a>Count-Based DQN</h3><p>当我们想要使用<strong>deterministic policy</strong>时，就必须规避基于随机性的<strong>exploration</strong>，如$\epsilon$-greedy或者Noisy Network；此时可以使用<strong>count-based</strong>的方法来进行探索</p>
+<p>一类<strong>count-based</strong>的方法是基于同一个思路的：对于某一个<strong>state</strong> $s$（或者<strong>state, action</strong>对$s,a$），我们通过某种手段统计出$\hat n(s)$表示到达$s$的次数，然后给予<strong>agent</strong>一个$\beta \hat n(s)^{-1/2}$的额外的奖励，此处的$-1/2$是来自于经典的多臂老虎机（Multi-armed Bandit）模型中的一个经典算法</p>
+<blockquote>
+<p>如果<strong>state</strong>是tabular的，或者说离散的，那么我们只需要通过简单的计数就能得到$\hat n(s)$的值；但是在一般情况下$s$通常是高维且连续的，因此我们需要通过不同的方法做估算</p>
+</blockquote>
+<p>一种最简单的方法是基于哈希：构造一个函数$\phi(s):\mathbb R^n\to \mathbb Z$（或者$\mathbb Z^k$，但是本质是一样的），然后每次经过$s$就增加一次$n(\phi(s))$，然后让$\hat n(s)=n(\phi(s))$即可；哈希函数的构造可以直接使用简化的**LSH (locally sensitive hash)**，这是一种在欧几里得空间下用于判断两个点是否距离很近的方法，我们可以简单的取一系列的$x_1,…,x_n\sim \mathcal N(0,1)$，然后令$$\phi(s)=(\phi_1(s),…,\phi_n(s))=(sgn(x_1^\top s),…,sgn(x_n^\top s))$$</p>
+<blockquote>
+<p>在原始的SimHash（即上文提到的针对欧几里得空间的LSH）中，Hash函数实际上一般还需要一个超参数$d$，并且$\phi_k(s)=\lceil (x_k^\top S)/d \rceil$，这样理论上的复杂度分析是需要与$d$挂钩的，直接使用$sgn$函数实际上是令$d=\infty$或者$d=\max_{k,s\in \mathcal S} |x_k^\top s|$，可能不能再理论上有好的保证</p>
+<p>一种方法是我们取一个有限的$d$；在<a target="_blank" rel="noopener" href="https://arxiv.org/abs/1611.04717">Hash Count-baed Exploration的原始论文</a>里，他们实际上是先用一个<strong>autoencoder</strong>将$s$编码到$g(s)\in{-1,1}^m$然后再做$\phi_k(s)=sgn(x_1’^\top g(s))$</p>
+</blockquote>
+<h3 id="Clipping"><a href="#Clipping" class="headerlink" title="Clipping"></a>Clipping</h3><h4 id="Reward-Clipping"><a href="#Reward-Clipping" class="headerlink" title="Reward Clipping"></a>Reward Clipping</h4><p>将每一步的<strong>reward</strong>限制在一个范围内，使得训练更加稳定</p>
+<h4 id="Gradient-Clipping"><a href="#Gradient-Clipping" class="headerlink" title="Gradient Clipping"></a>Gradient Clipping</h4><p>在更新时，我们不希望某一次的梯度过大从而破坏整体的网络，因此可以用</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">optimizer.zero_grad()</span><br><span class="line">loss.back_ward()</span><br><span class="line">torch.nn.utils.clip_grad_norm_(net.parameters(), max_grad_norm)</span><br><span class="line">optimizer.step()</span><br></pre></td></tr></table></figure>
+<p>来保证梯度不会大于一个给定的阈值</p>
+<h3 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h3><h4 id="Fundamentals"><a href="#Fundamentals" class="headerlink" title="Fundamentals"></a>Fundamentals</h4><ul>
+<li><strong>observation</strong>：一个$l\times l$的灰度图像</li>
+<li><strong>state</strong>：一般由最后若干个<strong>observation</strong>的序列构成，并转换成$k\times l\times l$的每个元素值在$[0, 1]$之间的tensor</li>
+<li><strong>reward</strong>：由环境给出初始的<strong>reward</strong>，再加上别的trick的影响</li>
+<li><strong>done</strong>：在训练时，每次死亡都是一个人<strong>episode</strong>结束</li>
+</ul>
+<h4 id="Noisy-Layer"><a href="#Noisy-Layer" class="headerlink" title="Noisy Layer"></a>Noisy Layer</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Noisy</span>(<span class="params">nn.Module</span>):</span></span><br></pre></td></tr></table></figure>
+<h4 id="Network-Architecture"><a href="#Network-Architecture" class="headerlink" title="Network Architecture"></a>Network Architecture</h4>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/19/ReplayBuffer/" rel="prev" title="Replay Buffer">
+                  <i class="fa fa-chevron-left"></i> Replay Buffer
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/02/26/Install-MPI/" rel="next" title="MPI Installation （安装Open MPI以及python的mpi4py包）">
+                  MPI Installation （安装Open MPI以及python的mpi4py包） <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yancheng Liang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

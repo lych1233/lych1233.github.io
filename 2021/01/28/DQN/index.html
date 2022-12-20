@@ -31,7 +31,7 @@
 <meta property="og:description" content="DQN是最基本，也是被应用最广泛的RL模型之一 MDP (Markov Decision Process)我们通常可以将一个task抽象为MDP问题。下面简单说明MDP的基本要素：  state：通常用来指代某一个当前任务（游戏）所在的状态，一般用observatoin指现在所观察到的信息（如当前游戏画面），而state可以直接是observation，也可以是之前一系列的observations">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-01-28T05:42:29.406Z">
-<meta property="article:modified_time" content="2021-02-18T13:15:09.364Z">
+<meta property="article:modified_time" content="2021-02-24T11:47:54.830Z">
 <meta property="article:author" content="Yancheng Liang">
 <meta name="twitter:card" content="summary">
 
@@ -159,7 +159,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#MDP-Markov-Decision-Process"><span class="nav-number">1.</span> <span class="nav-text">MDP (Markov Decision Process)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q-Learning"><span class="nav-number">2.</span> <span class="nav-text">Q-Learning</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Q-Function"><span class="nav-number">2.1.</span> <span class="nav-text">Q-Function</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#On-Policy-%E4%B8%8E-Off-Policy"><span class="nav-number">2.2.</span> <span class="nav-text">On-Policy 与 Off-Policy</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Exploration"><span class="nav-number">2.3.</span> <span class="nav-text">Exploration</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DQN-on-Gym-Classic-Control-Games"><span class="nav-number">2.4.</span> <span class="nav-text">DQN on Gym Classic Control Games</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-Use-Gym-Environments"><span class="nav-number">2.5.</span> <span class="nav-text">How to Use Gym Environments</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Initialization"><span class="nav-number">2.5.1.</span> <span class="nav-text">Initialization</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Run"><span class="nav-number">2.5.2.</span> <span class="nav-text">Run</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Hint"><span class="nav-number">2.5.3.</span> <span class="nav-text">Hint</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Q-Network"><span class="nav-number">2.6.</span> <span class="nav-text">Q-Network</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Target-Network"><span class="nav-number">2.7.</span> <span class="nav-text">Target Network</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Code"><span class="nav-number">2.8.</span> <span class="nav-text">Code</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#MDP-Markov-Decision-Process"><span class="nav-number">1.</span> <span class="nav-text">MDP (Markov Decision Process)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q-Learning"><span class="nav-number">2.</span> <span class="nav-text">Q-Learning</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Q-Function"><span class="nav-number">2.1.</span> <span class="nav-text">Q-Function</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#On-Policy-%E4%B8%8E-Off-Policy"><span class="nav-number">2.2.</span> <span class="nav-text">On-Policy 与 Off-Policy</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Exploration"><span class="nav-number">2.3.</span> <span class="nav-text">Exploration</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DQN-on-Gym-Classic-Control-Games"><span class="nav-number">3.</span> <span class="nav-text">DQN on Gym Classic Control Games</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#How-to-Use-Gym-Environments"><span class="nav-number">3.1.</span> <span class="nav-text">How to Use Gym Environments</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Initialization"><span class="nav-number">3.1.1.</span> <span class="nav-text">Initialization</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Run"><span class="nav-number">3.1.2.</span> <span class="nav-text">Run</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Hint"><span class="nav-number">3.1.3.</span> <span class="nav-text">Hint</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Q-Network"><span class="nav-number">3.2.</span> <span class="nav-text">Q-Network</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Update"><span class="nav-number">3.3.</span> <span class="nav-text">Update</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Target-Network"><span class="nav-number">3.4.</span> <span class="nav-text">Target Network</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Code"><span class="nav-number">3.5.</span> <span class="nav-text">Code</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DQN-on-Atari"><span class="nav-number">4.</span> <span class="nav-text">DQN on Atari</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -175,7 +175,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -254,7 +254,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2021-02-18 21:15:09" itemprop="dateModified" datetime="2021-02-18T21:15:09+08:00">2021-02-18</time>
+        <time title="Modified: 2021-02-24 19:47:54" itemprop="dateModified" datetime="2021-02-24T19:47:54+08:00">2021-02-24</time>
       </span>
 
   
@@ -292,9 +292,9 @@
 <blockquote>
 <p><strong>Off-policy</strong>的方法具有明显的更高的数据使用率，但是缺陷是<strong>memory</strong>中的数据分布与当前的<strong>policy</strong>并不符合，因此会出现一些问题（如over estimate，对未访问的状态往往具有过高的估计，可以想象，对一个具有noise的分布取max得到的值一定大于实际上的平均值）</p>
 </blockquote>
-<h4 id="Exploration"><a href="#Exploration" class="headerlink" title="Exploration"></a>Exploration</h4><p><strong>RL</strong>中的一个重要的问题就是<strong>exploration</strong>，也就是在训练的时候采取什么决策方式；简单每次采用使得<strong>Q-function</strong>最大的<strong>action</strong>的方法很容易陷入一些局部的最优解；一种简单的解决方式为$\epsilon$-greedy，每次有$\epsilon$的概率选择一个随机的解，其余按照当前的<strong>Q-function</strong>贪心选择最优解</p>
+<h4 id="Exploration"><a href="#Exploration" class="headerlink" title="Exploration"></a>Exploration</h4><p><strong>RL</strong>中的一个重要的问题就是<strong>exploration</strong>，也就是在训练的时候采取什么决策方式，使得能够探索到足够多的数据同时也能学会好的策略；简单每次采用使得<strong>Q-function</strong>最大的<strong>action</strong>的方法很容易陷入一些局部的最优解；一种简单的解决方式为$\epsilon$-greedy，每次有$\epsilon$的概率选择一个随机的解，其余按照当前的<strong>Q-function</strong>贪心选择最优解</p>
 <p>在实际中，$\epsilon$-greedy已经是一个优秀的策略；基于<strong>exploration</strong>策略的研究是<strong>RL</strong>的一个方向，比较典型的有 <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1606.01868">Count-Based DQN</a>，是通过给较少经过的状态更高的权值来达到<strong>explore</strong>的效果</p>
-<h4 id="DQN-on-Gym-Classic-Control-Games"><a href="#DQN-on-Gym-Classic-Control-Games" class="headerlink" title="DQN on Gym Classic Control Games"></a>DQN on Gym Classic Control Games</h4><p><a target="_blank" rel="noopener" href="http://gym.openai.com/envs/">Gym</a>上的<strong>Classic Control</strong>任务提供了一些简单的<strong>RL</strong>环境</p>
+<h3 id="DQN-on-Gym-Classic-Control-Games"><a href="#DQN-on-Gym-Classic-Control-Games" class="headerlink" title="DQN on Gym Classic Control Games"></a>DQN on Gym Classic Control Games</h3><p><a target="_blank" rel="noopener" href="http://gym.openai.com/envs/">Gym</a>上的<strong>Classic Control</strong>任务提供了一些简单的<strong>RL</strong>环境</p>
 <h4 id="How-to-Use-Gym-Environments"><a href="#How-to-Use-Gym-Environments" class="headerlink" title="How to Use Gym Environments"></a>How to Use Gym Environments</h4><h5 id="Initialization"><a href="#Initialization" class="headerlink" title="Initialization"></a>Initialization</h5><p>以<strong>CartPole</strong>环境为例，运行以下代码：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> gym</span><br><span class="line"></span><br><span class="line">env = gym.make(<span class="string">&#x27;CartPole-v1&#x27;</span>)</span><br><span class="line">print(env.observation_space)</span><br><span class="line">print(env.action_space)</span><br></pre></td></tr></table></figure>
 <p>可以得到输出</p>
@@ -313,8 +313,13 @@
 </blockquote>
 <h4 id="Q-Network"><a href="#Q-Network" class="headerlink" title="Q-Network"></a>Q-Network</h4><p>通过两层<strong>MLP</strong>来提取<strong>feature</strong>，然后用一层全连接层生成<strong>Q-function</strong></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">DQN</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, n_obs, n_act, hiddens</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(DQN, self).__init__()</span><br><span class="line">        self.fc1 = nn.Linear(n_obs, hiddens)</span><br><span class="line">        self.fc2 = nn.Linear(hiddens, hiddens)</span><br><span class="line">        self.fc3 = nn.Linear(hiddens, n_act)</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        x = F.relu(self.fc1(x))</span><br><span class="line">        x = F.relu(self.fc2(x))</span><br><span class="line">        <span class="keyword">return</span> self.fc3(x)</span><br></pre></td></tr></table></figure>
+<h4 id="Update"><a href="#Update" class="headerlink" title="Update"></a>Update</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">learn</span>(<span class="params">self, args, memory</span>):</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(memory) &lt; args.start_learning: <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    states, actions, rewards, dones, next_states = memory.sample(args.batch_size)</span><br><span class="line">    values = self.online_Q(states).gather(<span class="number">1</span>, actions.view(-<span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">    <span class="keyword">with</span> torch.no_grad():</span><br><span class="line">        next_values = self.target_Q(next_states).<span class="built_in">max</span>(<span class="number">1</span>)[<span class="number">0</span>] <span class="keyword">if</span> args.enable_target_net <span class="keyword">else</span> self.online_Q(next_states).<span class="built_in">max</span>(<span class="number">1</span>)[<span class="number">0</span>]</span><br><span class="line">    <span class="comment">#get target values based on Bellman equation</span></span><br><span class="line">    tar_values = rewards + (<span class="number">1.</span>- dones) * args.gamma * next_values</span><br><span class="line">    <span class="comment">#compute loss as the sqaure of TD-error</span></span><br><span class="line">    loss = F.mse_loss(values, tar_values.view(-<span class="number">1</span>, <span class="number">1</span>).detach())</span><br><span class="line">    self.optimizer.zero_grad(); loss.backward(); self.optimizer.step()</span><br><span class="line"></span><br><span class="line">    self.T += <span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> self.T % args.update_target_net == <span class="number">0</span>:</span><br><span class="line">        self.update_target_net()</span><br></pre></td></tr></table></figure>
 <h4 id="Target-Network"><a href="#Target-Network" class="headerlink" title="Target Network"></a>Target Network</h4><p>用于提升训练稳定性；用$R(s, a) + \gamma Q_{\theta’}(s’, a’)$进行估计并更新$\theta$，每过一段时间将$\theta’$复制为$\theta$</p>
 <h4 id="Code"><a href="#Code" class="headerlink" title="Code"></a>Code</h4><p>Full version is available on <a target="_blank" rel="noopener" href="https://github.com/lych1233/Codes-for-RL-ML-Algorithms/tree/master/DQN">GitHub</a></p>
+<h3 id="DQN-on-Atari"><a href="#DQN-on-Atari" class="headerlink" title="DQN on Atari"></a>DQN on Atari</h3><blockquote>
+<p><strong>Atari-2600</strong>是<strong>RL</strong>最重要的<strong>benchmark</strong>之一（别的<strong>benchmark</strong>有<strong>Mujuco</strong>中的一些机器人控制、<strong>Warcraft</strong>魔兽争霸用于多智能体环境等等）</p>
+</blockquote>
+<p>To be continued …</p>
 
     </div>
 
@@ -333,8 +338,8 @@
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2021/01/28/Pytorch-Intro/" rel="next" title="Pytorch Fundamental">
-                  Pytorch Fundamental <i class="fa fa-chevron-right"></i>
+                <a href="/2021/01/28/Pytorch-Intro/" rel="next" title="Pytorch (Numpy) Fundamental">
+                  Pytorch (Numpy) Fundamental <i class="fa fa-chevron-right"></i>
                 </a>
             </div>
           </div>
@@ -378,7 +383,7 @@
 
 <div class="copyright">
   &copy; 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

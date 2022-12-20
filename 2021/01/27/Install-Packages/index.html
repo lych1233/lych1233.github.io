@@ -23,15 +23,15 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"lych1233.github.io","root":"/","images":"/images","scheme":"Pisces","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
-<meta name="description" content="安装Machine Learning和Reinforcement Learning所需要的包 Install PytorchPytorch和tensorflow是两大主流的机器学习库  首先用 1conda activate  进入需要安装pytorch的环境 可以从pytorch官网中找到需要的安装命令。注意选择正确的cuda版本（如果没有gpu则选择cpu版）。一个基于cuda11.0的安装命">
+<meta name="description" content="安装Machine Learning和Reinforcement Learning所需要的包  在每次安装前使用 12which pipwhich python  来确定使用了正确的安装方式  Install PytorchPytorch和tensorflow是两大主流的机器学习库  首先用 1conda activate  进入需要安装pytorch的环境 可以从pytorch官网中找到需要的安">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Packages Installation （在conda环境下安装Rl&#x2F;ML需要的软件包）">
 <meta property="og:url" content="http://lych1233.github.io/2021/01/27/Install-Packages/index.html">
 <meta property="og:site_name" content="lych_cys">
-<meta property="og:description" content="安装Machine Learning和Reinforcement Learning所需要的包 Install PytorchPytorch和tensorflow是两大主流的机器学习库  首先用 1conda activate  进入需要安装pytorch的环境 可以从pytorch官网中找到需要的安装命令。注意选择正确的cuda版本（如果没有gpu则选择cpu版）。一个基于cuda11.0的安装命">
+<meta property="og:description" content="安装Machine Learning和Reinforcement Learning所需要的包  在每次安装前使用 12which pipwhich python  来确定使用了正确的安装方式  Install PytorchPytorch和tensorflow是两大主流的机器学习库  首先用 1conda activate  进入需要安装pytorch的环境 可以从pytorch官网中找到需要的安">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-01-27T09:57:14.159Z">
-<meta property="article:modified_time" content="2021-01-28T04:57:02.398Z">
+<meta property="article:modified_time" content="2021-02-26T16:10:31.807Z">
 <meta property="article:author" content="Yancheng Liang">
 <meta name="twitter:card" content="summary">
 
@@ -175,7 +175,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -254,7 +254,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2021-01-28 12:57:02" itemprop="dateModified" datetime="2021-01-28T12:57:02+08:00">2021-01-28</time>
+        <time title="Modified: 2021-02-27 00:10:31" itemprop="dateModified" datetime="2021-02-27T00:10:31+08:00">2021-02-27</time>
       </span>
 
   
@@ -268,13 +268,19 @@
     
     <div class="post-body" itemprop="articleBody">
         <p>安装<strong>Machine Learning</strong>和<strong>Reinforcement Learning</strong>所需要的包</p>
+<blockquote>
+<p>在每次安装前使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">which</span> pip</span><br><span class="line"><span class="built_in">which</span> python</span><br></pre></td></tr></table></figure>
+
+<p>来确定使用了正确的安装方式</p>
+</blockquote>
 <h3 id="Install-Pytorch"><a href="#Install-Pytorch" class="headerlink" title="Install Pytorch"></a>Install Pytorch</h3><p><strong>Pytorch</strong>和<strong>tensorflow</strong>是两大主流的机器学习库</p>
 <blockquote>
 <p>首先用</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda activate</span><br></pre></td></tr></table></figure>
 
 <p>进入需要安装<strong>pytorch</strong>的环境</p>
-<p>可以从<strong>pytorch</strong><a href="">官网</a>中找到需要的安装命令。注意选择正确的<strong>cuda</strong>版本（如果没有<strong>gpu</strong>则选择<strong>cpu</strong>版）。一个基于<strong>cuda11.0</strong>的安装命令为：</p>
+<p>可以从<strong>pytorch</strong><a target="_blank" rel="noopener" href="https://pytorch.org/">官网</a>中找到需要的安装命令。注意选择正确的<strong>cuda</strong>版本（如果没有<strong>gpu</strong>则选择<strong>cpu</strong>版）。一个基于<strong>cuda11.0</strong>的安装命令为：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda install pytorch torchvision torchaudio cudatoolkit=11.0 -c pytorch</span><br></pre></td></tr></table></figure>
 
 <p>如果官网下载速度太慢，可以删去 -c pytorch，这样就会从.condarc文件中的channel下载，如果已经配置了清华镜像（见<a href="/2021/01/27/Install-Env/" title="上一篇">上一篇</a>），则可以从清华镜像渠道下载</p>
@@ -288,6 +294,12 @@
 <p>安装</p>
 </blockquote>
 <p><strong>Gym</strong>内的<strong>Atari Games</strong>是<strong>Reinforcement Learning</strong>最重要的benchmark</p>
+<blockquote>
+<p>使用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install atari_py</span><br></pre></td></tr></table></figure>
+
+<p>安装</p>
+</blockquote>
 
     </div>
 
@@ -301,8 +313,8 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2021/01/27/Install-Env/" rel="prev" title="Environment Installation （使用conda配置环境）">
-                  <i class="fa fa-chevron-left"></i> Environment Installation （使用conda配置环境）
+                <a href="/2021/01/27/Install-Env/" rel="prev" title="Environment Installation with Conda （使用conda配置环境）">
+                  <i class="fa fa-chevron-left"></i> Environment Installation with Conda （使用conda配置环境）
                 </a>
             </div>
             <div class="post-nav-item">
@@ -351,7 +363,7 @@
 
 <div class="copyright">
   &copy; 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

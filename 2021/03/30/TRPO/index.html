@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"lych1233.github.io","root":"/","images":"/images","scheme":"Pisces","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+<meta name="description" content="OpenAI中对TRPO的介绍  RecallPolicy GradientPolicy Gradient  $\pi_\theta$表示一个policy，$\pi_\theta(a\mid s)$表示在$s$这个state下，使用该policy有多大的概率选择action $a$；$\theta$表示这一策略是通过$\theta$中的参数表示的，即$\pi_\theta(a\mid s)&#x3D;f(">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TRPO (Trust Region Policy Optimization)">
+<meta property="og:url" content="http://lych1233.github.io/2021/03/30/TRPO/index.html">
+<meta property="og:site_name" content="lych_cys">
+<meta property="og:description" content="OpenAI中对TRPO的介绍  RecallPolicy GradientPolicy Gradient  $\pi_\theta$表示一个policy，$\pi_\theta(a\mid s)$表示在$s$这个state下，使用该policy有多大的概率选择action $a$；$\theta$表示这一策略是通过$\theta$中的参数表示的，即$\pi_\theta(a\mid s)&#x3D;f(">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-03-30T06:48:57.466Z">
+<meta property="article:modified_time" content="2021-08-03T07:40:20.636Z">
+<meta property="article:author" content="Yancheng Liang">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://lych1233.github.io/2021/03/30/TRPO/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>TRPO (Trust Region Policy Optimization) | lych_cys</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">lych_cys</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">It works!</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-ai"><a href="/AI/" rel="section"><i class="fas fa-robot fa-fw"></i>AI</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="far fa-question-circle fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Recall"><span class="nav-number">1.</span> <span class="nav-text">Recall</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Policy-Gradient"><span class="nav-number">1.1.</span> <span class="nav-text">Policy Gradient</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Trust-Region-Policy-Optimization"><span class="nav-number">2.</span> <span class="nav-text">Trust Region Policy Optimization</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Approximation"><span class="nav-number">2.1.</span> <span class="nav-text">Approximation</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Practical-Computation"><span class="nav-number">3.</span> <span class="nav-text">Practical Computation</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Conjugate-Gradient"><span class="nav-number">3.1.</span> <span class="nav-text">Conjugate Gradient</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Iterative-Computing"><span class="nav-number">3.1.1.</span> <span class="nav-text">Iterative Computing</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Avoid-Computing-Hessian"><span class="nav-number">3.2.</span> <span class="nav-text">Avoid Computing Hessian</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Yancheng Liang"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Yancheng Liang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/lych1233" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;lych1233" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/lych1233@gmail.com" title="E-Mail → lych1233@gmail.com"><i class="fas fa-envelope-square fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/03/30/TRPO/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yancheng Liang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lych_cys">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TRPO (Trust Region Policy Optimization)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-03-30 14:48:57" itemprop="dateCreated datePublished" datetime="2021-03-30T14:48:57+08:00">2021-03-30</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-08-03 15:40:20" itemprop="dateModified" datetime="2021-08-03T15:40:20+08:00">2021-08-03</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <blockquote>
+<p><a target="_blank" rel="noopener" href="https://spinningup.openai.com/en/latest/algorithms/trpo.html">OpenAI中对TRPO的介绍</a></p>
+</blockquote>
+<h3 id="Recall"><a href="#Recall" class="headerlink" title="Recall"></a>Recall</h3><h4 id="Policy-Gradient"><a href="#Policy-Gradient" class="headerlink" title="Policy Gradient"></a>Policy Gradient</h4><a href="/2021/02/02/PolicyGradient/" title="Policy Gradient">Policy Gradient</a>
+
+<p>$\pi_\theta$表示一个<strong>policy</strong>，$\pi_\theta(a\mid s)$表示在$s$这个<strong>state</strong>下，使用该<strong>policy</strong>有多大的概率选择<strong>action</strong> $a$；$\theta$表示这一策略是通过$\theta$中的参数表示的，即$\pi_\theta(a\mid s)=f(s,a,\theta)$，$f$是一个函数（例如一个神经网络），而$\theta$是需要学习的参数</p>
+<p><strong>Value Function</strong> $V^{\pi_\theta}(s)$表示按照$\pi_\theta$进行决策的情况下，从$s$这个<strong>state</strong>出发能获得的总收益；而我们的目标是最大化$J=V^{\pi_\theta}(s_0)$，并通过计算梯度$$\nabla_\theta J = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)Q^{\pi_\theta}(s, a)\right]$$来得到最快提升$J$的$\theta$更新方向</p>
+<h3 id="Trust-Region-Policy-Optimization"><a href="#Trust-Region-Policy-Optimization" class="headerlink" title="Trust Region Policy Optimization"></a>Trust Region Policy Optimization</h3><p>在<strong>policy gradient</strong>中，我们通过参数$\alpha$控制步长来得到$\theta’=\theta+\alpha g$，其中$g$ (gradient)就是$g=\nabla_\theta J$，在这种情况下，我们能够保证$\theta$和$\theta’$非常接近，但是问题在于，即便两个参数十分接近，也可能造成$\pi_\theta$和$\pi_{\theta’}$相距甚远，而这样的话我们通过$\pi_\theta$得到的信息就无法保证$\pi_{\theta’}$​依然是很好的策略</p>
+<blockquote>
+<p>当$|\pi_\theta-\pi_{\theta’}|$很小的时候，在理论上可以保证$J$的增长量与我们的估计一致，因此可以使用梯度来更新</p>
+</blockquote>
+<p>于是，我们引入$D_{KL}(\theta_k \mid\mid \theta)$来衡量新的<strong>policy</strong> $\pi_\theta$和第$k$步得到的$\pi_{\theta_k}$之间的差距，具体地：$$D_{KL}(\theta_k \mid\mid \theta)=\mathbb E_{s} \left[KL(\pi_{\theta_k}(\cdot\mid s) || \pi_{\theta}(\cdot \mid s))\right]=\mathbb E_{s}\left[\sum_a \pi_{\theta_k}(a\mid s)\log\frac{\pi_{\theta_k}(a\mid s)}{\pi_{\theta}(a\mid s)}\right]$$</p>
+<p>同时，我们用$\mathcal J(\theta,\theta_k)=\mathbb E_{s,a\sim\pi_{\theta_k}}\left[\frac{\pi_{\theta}(a\mid s)}{\pi_{\theta_k}(a\mid s)}A^{\pi_{\theta_k}}(s,a)\right]$来衡量$\theta$在用$\theta_k$收集到的数据中有多好（这一项可以用$\mathbb E_{x\sim p}[f(x)]=\mathbb E_{x\sim q}\left[\frac{p(x)}{q(x)}f(x)\right]$来理解）</p>
+<p>我们希望在更新时希望$D_{KL}$这一项不要太大，因此我们的优化目标可以用下面的式子衡量$$\theta_{k+1}=\arg\max_\theta \mathcal J(\theta,\theta_k) \text{ s.t. }D_{KL}(\theta_k\mid\mid\theta)\le \delta$$，这样，我们希望在<strong>policy</strong>对参数$\theta$敏感的时候采用一个小的更新步长（注意这一步长对$\theta$的每个维度可能是不同的），在不敏感的时候可以使用更大的步长，即通过$D_{KL}$的限制来自动获得合适的步长</p>
+<h4 id="Approximation"><a href="#Approximation" class="headerlink" title="Approximation"></a>Approximation</h4><p>上面的两个式子$\mathcal J(\theta,\theta_k)$和$D_{KL}(\theta_k\mid\mid \theta)$都无法直接计算，因此我们利用<strong>Taylor Expansion</strong>，取展开的最低阶近似得到：</p>
+<p>$$\mathcal J(\theta,\theta_k)\approx \langle\nabla_{\theta_k}J,\theta-\theta_k\rangle=g^T(\theta-\theta_k)$$</p>
+<p>$$D_{KL}(\theta_k\mid\mid \theta)\approx \frac12 (\theta-\theta_k)^\top \bar H(\theta-\theta_k)$$</p>
+<p>其中$\bar H_{ij}=\frac{\partial^2}{\partial \theta_i\partial \theta_j}D_{KL}(\theta_k\mid\mid\theta)$（$\hat H$其实是<strong>Fisher Information Matrix</strong>）</p>
+<p>于是我们可以将更新重写为</p>
+<p>$$\theta_{k+1}=\arg\max_\theta \mathcal g^\top(\theta-\theta_k) \text{ s.t. } \frac12 (\theta-\theta_k)^\top \bar H(\theta-\theta_k)\le \delta$$并且可以通过<strong>Lagrangian Duality</strong>求解：$$\min_\theta\max_{\lambda&gt;0} -\mathcal g^\top(\theta-\theta_k)+\lambda\left(\frac12 (\theta-\theta_k)^\top \bar H(\theta-\theta_k)-\delta\right)~~~\Rightarrow$$</p>
+<p>$$\max_{\lambda&gt;0}\min_{\Delta\theta} -\mathcal g^\top {\Delta\theta}+\lambda\left(\frac12 {\Delta\theta}^\top \bar H{\Delta\theta}-\delta\right)=\max_{\lambda&gt;0}\min_{\Delta\theta}\frac{\lambda}{2}|\bar H^{\frac12}{\Delta\theta}-\bar H^{-\frac12}g\lambda^{-1}|^2+\delta\lambda+\frac12g^\top\bar H^{-1} g\lambda^{-1}$$</p>
+<p>由此解得$$\lambda=\sqrt{\frac{g^\top\bar H^{-1} g}{2\delta}},~\Delta\theta=\bar H^{-1}g\lambda^{-1}=\sqrt \frac{2\delta}{g^\top\bar H^{-1} g}\bar H^{-1}g$$</p>
+<p>如果直接采用$$\theta_{k+1}=\theta_k+\sqrt \frac{2\delta}{g^\top\bar H^{-1} g}\bar H^{-1}g$$，实际上就是名为<a target="_blank" rel="noopener" href="https://papers.nips.cc/paper/2073-a-natural-policy-gradient.pdf">Natual Policy Graident</a>的方法（通过Hessian Matrix提供的信息给不同维度不同的步长）；这主要是由于我们使用<strong>Taylor Expansion</strong>做了近似，因此计算是不精确的，所以实际上我们只是将$\Delta\theta=\sqrt \frac{2\delta}{g^\top\bar H^{-1} g}\bar H^{-1}g$作为一个梯度的方向，然后使用$$\theta_{k+1}=\theta_k+\alpha^j\sqrt \frac{2\delta}{g^\top\bar H^{-1} g}\bar H^{-1}g$$进行更新，其中$\alpha\in(0,1)$，$j$是最小的使得$\mathcal J(\theta_{k+1},\theta_k)$不下降并且$D_{KL}(\theta_k\mid\mid\theta_{k+1})\le \delta$的整数</p>
+<h3 id="Practical-Computation"><a href="#Practical-Computation" class="headerlink" title="Practical Computation"></a>Practical Computation</h3><blockquote>
+<p>计算$\Delta\theta=\sqrt \frac{2\delta}{g^\top\bar H^{-1} g}\bar H^{-1}g$</p>
+</blockquote>
+<p>这里计算的困难主要在于求$\bar H^{-1}$；事实上，我们不希望有任何二阶及以上的计算，因此，我们需要一种方法给出一个近似解，注意到我们只需要计算$\bar H^{-1}g$即可，不需要求出完整的$\bar H^{-1}$</p>
+<p>定义$s=\bar H^{-1} g$，那么我们实际上就是要解方程$\bar Hs=g$，其中$\bar H$是一个<strong>Fisher Information Matrix</strong>，满足对称、正定的性质，在这种情况下，可以使用<em>conjugate gradients</em>这种方法求解</p>
+<h4 id="Conjugate-Gradient"><a href="#Conjugate-Gradient" class="headerlink" title="Conjugate Gradient"></a>Conjugate Gradient</h4><blockquote>
+<p>求解$Ax=b$ </p>
+</blockquote>
+<p>我们说两个向量$u,v$关于$A$ conjugate，指的是$u^\top Av=0$；我们能够找到两两关于$A$ conjugate的一组$p_1,…,p_n$（它们同时一定组成$\mathbb R^n$的一个basis），并将$x$写成$x=\sum \alpha_ip_i$的形式</p>
+<p>考虑对$x=\sum \alpha_ip_i$左侧乘上$p_k^\top A$，我们可以得到$$p_k^\top b=p_k^\top Ax=\sum \alpha_ip_k^\top Ap_i=\sum\alpha_i\delta_{ik}p_k^\top A p_i<del>\Rightarrow</del>\alpha_k=\frac{p_k^\top b}{p_k^\top Ap_k}$$</p>
+<h5 id="Iterative-Computing"><a href="#Iterative-Computing" class="headerlink" title="Iterative Computing"></a>Iterative Computing</h5><blockquote>
+<p>一个直觉是，我们通常能够用迭代的方法直观地解决优化问题</p>
+</blockquote>
+<p>注意到在这个方程$Ax=b$中，解$x^*$实际上也是$f(x)=\frac12 x^\top A x - xb$的最小值的位置；而最小化$f(x)$有一个显然的现成算法：梯度下降，也就是对于当前的$x_k$，我们计算出梯度的相反数$p_k=b-Ax_k$，然后得到$x_{k+1}=x_k+\alpha_k p_k$，其中$\alpha_k$是这一步迭代的步长</p>
+<p>那么，我们如何确定步长呢？这就是使用<em>conjugate gradient</em>的作用了，如果我们强制要求所有的$p_k$都是关于$A$ conjugate的，那么步长直观上即使我们之前计算出的$\alpha_k=\frac{p_k^\top b}{p_k^\top Ap_k}$；也就是说，当我们计算出当前梯度的相反数$r_k=b-Ax_k$后，只需要做一次（关于$A$的）正交化（<em>Gram-Schmidt</em>），即我们让$p_k=r_k-\sum_{i&lt;k}\frac{p_i^\top Ar_k}{p_i^\top Ap_i}p_i$，然后计算出步长$\alpha_k=\frac{p_k^\top r_k}{p_k^\top Ap_k}$</p>
+<blockquote>
+<p>什么不使用步长$\tilde \alpha_k=\frac{p_k^\top b}{p_k^\top Ap_k}$？从解的精确性上讲，使用$\tilde \alpha_k$看起来能够在$O(N)$次迭代后给出精确的$x^*$；但是在实际操作中，我们往往只进行非常有限的迭代次数（如：10次），因此我们希望每一次迭代都能够尽可能利用当前的信息，因此我们使用$\alpha_k=\frac{p_k^\top r_k}{p_k^\top Ap_k}$，这样做的好处是每一次迭代我们都能到达当前方向能到达的最优位置（即$\alpha_k=\arg\min_\alpha f(x_k+\alpha_kp_k)$</p>
+</blockquote>
+<h4 id="Avoid-Computing-Hessian"><a href="#Avoid-Computing-Hessian" class="headerlink" title="Avoid Computing Hessian"></a>Avoid Computing Hessian</h4><p>注意到按定义，$\bar H$是一个二阶<strong>Hessian Matrix</strong>，即$\bar H=\nabla^2 f(\theta)$，而这样一个矩阵即便只是将其计算出来都非常耗时，但是由于我们永远只需要用到$\bar H v$，因此实际上并不需要真的计算出这个矩阵，通过简单的计算可知$$\bar Hv=(\nabla^2 f(\theta))v=\nabla_\theta(\nabla f(\theta)^\top v)$$</p>
+<p>这样我们永远都只需要一阶的计算即可</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/26/Install-MPI/" rel="prev" title="MPI Installation （安装Open MPI以及python的mpi4py包）">
+                  <i class="fa fa-chevron-left"></i> MPI Installation （安装Open MPI以及python的mpi4py包）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/03/31/PPO/" rel="next" title="PPO(Proximial Policy Optimization)">
+                  PPO(Proximial Policy Optimization) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yancheng Liang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  <script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'none'
+      },
+      options: {
+        renderActions: {
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              const target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    const script = document.createElement('script');
+    script.src = '//cdn.jsdelivr.net/npm/mathjax@3.1.2/es5/tex-mml-chtml.js';
+    script.defer = true;
+    document.head.appendChild(script);
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.typesetClear();
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+
+
+</body>
+</html>

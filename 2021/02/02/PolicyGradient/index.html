@@ -25,13 +25,13 @@
   </script>
 <meta name="description" content="Openai上有一篇对Vanilla Policy Gradient进行介绍的文章  Background 上一篇介绍DQN的文章简要介绍了MDP和一些别的简单的内容，在对Policy Gradient进行介绍前，需要再明确一些概念  这次，我们用$\pi(a\mid s)$表示在$s$采取$a$的概率（这是因为Policy Gradient是一种天然的可以得到混合策略的方法）；对于一个参数$\">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Vanilla Policy Gradient (with Baseline)">
+<meta property="og:title" content="Vanilla Policy Gradient (Baseline, GAE, Vector Env)">
 <meta property="og:url" content="http://lych1233.github.io/2021/02/02/PolicyGradient/index.html">
 <meta property="og:site_name" content="lych_cys">
 <meta property="og:description" content="Openai上有一篇对Vanilla Policy Gradient进行介绍的文章  Background 上一篇介绍DQN的文章简要介绍了MDP和一些别的简单的内容，在对Policy Gradient进行介绍前，需要再明确一些概念  这次，我们用$\pi(a\mid s)$表示在$s$采取$a$的概率（这是因为Policy Gradient是一种天然的可以得到混合策略的方法）；对于一个参数$\">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-02-02T06:31:03.167Z">
-<meta property="article:modified_time" content="2021-02-18T13:15:31.427Z">
+<meta property="article:modified_time" content="2021-08-03T01:23:40.511Z">
 <meta property="article:author" content="Yancheng Liang">
 <meta name="twitter:card" content="summary">
 
@@ -48,7 +48,7 @@
     lang   : 'en'
   };
 </script>
-<title>Vanilla Policy Gradient (with Baseline) | lych_cys</title>
+<title>Vanilla Policy Gradient (Baseline, GAE, Vector Env) | lych_cys</title>
   
 
 
@@ -159,7 +159,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Background"><span class="nav-number">1.</span> <span class="nav-text">Background</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Policy-Gradient"><span class="nav-number">2.</span> <span class="nav-text">Policy Gradient</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Reinforce"><span class="nav-number">2.1.</span> <span class="nav-text">Reinforce</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Policy-Gradient-with-Baseline"><span class="nav-number">2.2.</span> <span class="nav-text">Policy Gradient with Baseline</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Policy-Gradient-Variants"><span class="nav-number">2.3.</span> <span class="nav-text">Policy Gradient Variants</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GAE-Generalized-Advantage-Estimate"><span class="nav-number">2.4.</span> <span class="nav-text">GAE (Generalized Advantage Estimate)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Training-Tricks"><span class="nav-number">3.</span> <span class="nav-text">Training Tricks</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Advantage-Normalization"><span class="nav-number">3.1.</span> <span class="nav-text">Advantage Normalization</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Entropy-Loss-Score"><span class="nav-number">3.2.</span> <span class="nav-text">Entropy Loss (Score)</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Background"><span class="nav-number">1.</span> <span class="nav-text">Background</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Policy-Gradient"><span class="nav-number">2.</span> <span class="nav-text">Policy Gradient</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Reinforce"><span class="nav-number">2.1.</span> <span class="nav-text">Reinforce</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Policy-Gradient-with-Baseline"><span class="nav-number">2.2.</span> <span class="nav-text">Policy Gradient with Baseline</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Policy-Gradient-Variants-and-Actor-Critic"><span class="nav-number">2.3.</span> <span class="nav-text">Policy Gradient Variants and Actor-Critic</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GAE-Generalized-Advantage-Estimate"><span class="nav-number">2.4.</span> <span class="nav-text">GAE (Generalized Advantage Estimate)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Training-Tricks"><span class="nav-number">3.</span> <span class="nav-text">Training Tricks</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Advantage-Normalization"><span class="nav-number">3.1.</span> <span class="nav-text">Advantage Normalization</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Entropy-Loss-Score"><span class="nav-number">3.2.</span> <span class="nav-text">Entropy Loss (Score)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Asynchronous-Distributed-Training"><span class="nav-number">3.3.</span> <span class="nav-text">Asynchronous&#x2F;Distributed Training</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implementation"><span class="nav-number">4.</span> <span class="nav-text">Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Network-Architecture"><span class="nav-number">4.1.</span> <span class="nav-text">Network Architecture</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Parallel-Environement"><span class="nav-number">4.2.</span> <span class="nav-text">Parallel Environement</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Code"><span class="nav-number">4.3.</span> <span class="nav-text">Code</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -175,7 +175,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -236,7 +236,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Vanilla Policy Gradient (with Baseline)
+          Vanilla Policy Gradient (Baseline, GAE, Vector Env)
         </h1>
 
         <div class="post-meta-container">
@@ -254,7 +254,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2021-02-18 21:15:31" itemprop="dateModified" datetime="2021-02-18T21:15:31+08:00">2021-02-18</time>
+        <time title="Modified: 2021-08-03 09:23:40" itemprop="dateModified" datetime="2021-08-03T09:23:40+08:00">2021-08-03</time>
       </span>
 
   
@@ -277,11 +277,15 @@
 <ul>
 <li><strong>Value Function</strong>: $V(s)$表示从$s$这个状态出发得到的期望收益，可以用递推式$$V(s)=\sum_{s’, a} \pi(a\mid s)p(s’\mid s, a)(R(s, a) + \gamma V(s’))$$表示</li>
 <li><strong>Q Function</strong>：$Q(s, a)$表示在$s$采取$a$得到的收益，可以用递推式$$Q(s, a) = \sum_{s’}p(s’\mid s, a)(R(s, a) + \gamma V(s’))$$表示；由此可见，我们有$$V(s)=\sum_a \pi(a\mid s)Q(s,a)$$</li>
-<li>**Advantage Function **：优势函数$A(s, a)$表示采取$a$比采取别的策略有多大的好处，可以直接定义为$A(s, a) = Q(s, a) - V(s)$</li>
+<li><strong>Advantage Function</strong>：优势函数$A(s, a)$表示采取$a$比采取别的策略有多大的好处，可以直接定义为$A(s, a) = Q(s, a) - V(s)$</li>
 </ul>
 <p>我们的目标同样是找到一个最好的$\theta^*$来最大化从初始状态出发得到的收益，即最大化$J(\theta)=V^{\pi_{\theta}}(s_0)$</p>
+<blockquote>
+<p>Policy-based算法的优势在于可以比value based算法（如<strong>DQN</strong>）更自然地应用到连续领域，此处不做介绍，可能会在将来的算法中介绍</p>
+<p>同时，<strong>Policy Gradient</strong>可以自动学出混合策略，并且一般不需要考虑<strong>exploratoin</strong>的问题（在<strong>DQN</strong>中，我们需要使用$\epsilon$-greedy）</p>
+</blockquote>
 <h3 id="Policy-Gradient"><a href="#Policy-Gradient" class="headerlink" title="Policy Gradient"></a>Policy Gradient</h3><h4 id="Reinforce"><a href="#Reinforce" class="headerlink" title="Reinforce"></a>Reinforce</h4><p>通过数学推导我们可以得到$$\nabla_\theta J = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)Q^{\pi_\theta}(s, a)\right]$$</p>
-<p>在优化$\theta$时，我们只需要通过模型给出$\pi_\theta$即可，<strong>Q function</strong>可以通过在环境中使用$\pi_\theta$进行交互来得到一个对$Q^{\pi_\theta}(s, a)$估计$\hat Q(s, a)$；换而言之，我们通过$\pi_\theta$得到了一个<strong>trajectory</strong> $\tau = (s_t, a_t, r_t)<em>{t=0}^n$，那么$\hat Q(s_t, a_t)=\sum</em>{k=t}^{n} \gamma^{k-t}r_k$</p>
+<p>在优化$\theta$时，我们只需要通过模型给出$\pi_\theta$即可，<strong>Q function</strong>可以通过在环境中使用$\pi_\theta$进行交互来得到一个对$Q^{\pi_\theta}(s, a)$的估计$\hat Q(s, a)$；换而言之，我们通过$\pi_\theta$得到了一个<strong>trajectory</strong>  $\tau = (s_t, a_t, r_t)<em>{t=0}^n$，那么$\hat Q(s_t, a_t)=\sum</em>{k=t}^{n} \gamma^{k-t}r_k$</p>
 <p>然后我们就可以通过$\nabla_\theta J \approx \sum_{t=0}^n \nabla_\theta \log \pi_\theta(a_t\mid s_t)\hat Q(s_t, a_t)$得到一个对梯度的估计$\Delta \theta$，然后用$\theta \leftarrow \theta + \alpha \Delta \theta$进行更新即可；实际操作中可以多收集几条<strong>trajectory</strong>去平均值来得到一个更好的估计</p>
 <blockquote>
 <p> 上述方法实际上就是<strong>Monte-Carlo Policy Gradient (REINFORCE)**，即通过$\pi_\theta$来收集一个</strong>trajectory**，然后得到一个对$J(\theta)$的梯度的估计来得到一个增大它的方向$\Delta \theta$，最后让$\theta$朝着这个方向前进一个步长得到新的$\pi_\theta’$</p>
@@ -290,38 +294,47 @@
 <blockquote>
 <p>尽管从原理上讲，即便<strong>reward</strong>能都是正的，好的策略能得到比坏的策略更高的<strong>reward</strong>，因此能够得到一个更大的梯度从而在长期获得优势，但是在实践中，一旦陷入<strong>local optimum</strong>，就很难再sample到好的策略从而跳出<strong>local optimum</strong></p>
 </blockquote>
-<p>因此我们希望能都解决这个 “<strong>reward</strong>都是正的” 的问题；注意到即便我们对$Q(s, a)$增添上一个函数$b(s)$是不影响梯度的，即$$\nabla_\theta J = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)Q^{\pi_\theta}(s, a)\right] = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)\left(Q^{\pi_\theta}(s, a) + b(s)\right)\right]，$$因而我们可以转而使用$$\nabla_\theta J = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)A^{\pi_\theta}(s, a)\right]$$</p>
+<p>因此我们希望能都解决这个 “<strong>reward</strong>都是正的” 的问题；注意到即便我们对$Q(s, a)$增添上一个任意函数$b(s)$是不影响梯度的，即$$\nabla_\theta J = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)Q^{\pi_\theta}(s, a)\right] = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)\left(Q^{\pi_\theta}(s, a) - b(s)\right)\right]，$$因而我们可以转而使用$$\nabla_\theta J = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)A^{\pi_\theta}(s, a)\right]$$</p>
 <blockquote>
-<p>这种方法也叫Policy gradient with baseline，其中baseline就是指$V(s)$，直观的理解就是通过减去一个平均收益，我们让<strong>reward</strong>有正有负了（实际上就是减小了variance）</p>
+<p>这种方法称为policy gradient with baseline，其中baseline就是指$ b(s)$，这里设为$V(s)$，直观的理解就是通过减去一个平均收益，我们让<strong>reward</strong>有正有负了（实际上就是减小了variance）</p>
 </blockquote>
 <p>于是，我们只需要在$\pi_\theta$的基础上多维护一个$V_\phi$，然后就能使用对<strong>Advantage function</strong>进行估计：$\hat A(s, a) = \hat Q(s, a)-V_\phi(s)$；于此同时，我们需要最小化$E_{\pi_\theta}[(V_\phi(s)-\hat V(s))^2]$来让我们的<strong>Value function</strong>给出一个尽量准确的估计</p>
-<h4 id="Policy-Gradient-Variants"><a href="#Policy-Gradient-Variants" class="headerlink" title="Policy Gradient Variants"></a>Policy Gradient Variants</h4><p>通过$$\nabla_\theta J  = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)\left(Q^{\pi_\theta}(s, a) + b(s)\right)\right]$$ 一式我们能得到一系列的<strong>on policy</strong>的<strong>Policy Gradient</strong>算法：</p>
+<h4 id="Policy-Gradient-Variants-and-Actor-Critic"><a href="#Policy-Gradient-Variants-and-Actor-Critic" class="headerlink" title="Policy Gradient Variants and Actor-Critic"></a>Policy Gradient Variants and Actor-Critic</h4><p>通过$$\nabla_\theta J  = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)\left(Q^{\pi_\theta}(s, a) - b(s)\right)\right]$$ 一式我们能得到一系列的<strong>on policy</strong>的<strong>Policy Gradient</strong>算法：</p>
 <ul>
 <li><strong>Vanilla</strong>: $\nabla_\theta J  = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)\color{red}{\hat A(s, a)}\right]$并同时维护$V_\phi(s)$<ul>
-<li>如果我们通过一些方法来限制步长使得模型一定获得提升则可以得到<strong>TRPO</strong>算法</li>
+<li>如果我们通过一些方法来获取步长则可以得到<strong>TRPO</strong>、<strong>PPO</strong>算法</li>
 </ul>
 </li>
 <li><strong>Q Actor-Critic</strong>（通常所说的<strong>Actor-Critic</strong>: $\nabla_\theta J  = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)\color{red}{Q_\phi(s, a)}\right]$并同时维护$Q_\theta(s, a)$（使用TD-error更新$Q_\phi(s, a)$）</li>
 <li><strong>Advantage/TD Actor-Critic</strong>：通过将$\color{red}{Q_\phi(s,a)}$替换为$\color{red}{A_\phi(s,a)}$和TD-error实现</li>
 </ul>
 <blockquote>
-<p>上诉做法本质上都是通过尽量得到一个对$Q^{\pi_\theta}(s, a)$的更好的表示来减小variance</p>
+<p>上诉做法本质上都是通过尽量得到一个对$Q^{\pi_\theta}(s, a)-b(s)$的更好的表示来减小variance；如果我们将梯度写为：$\nabla_\theta J = \mathbb E_{\pi_\theta}\left[\nabla_{\theta}\log \pi_\theta(a\mid s)R(s, a)\right]$，那么$R(s,a)$就是<strong>Critic</strong>对当前状态的一个估值，而我们通过这个估值来更新<strong>Actor</strong>的策略，因此不同<strong>Actor-Critic</strong>就是想要尽量找到好的<strong>Critic</strong></p>
 <p><strong>Off policy</strong>的做法则不能通过上述方法得到（即不能直接将上面计算梯度的方法运用在过去的<strong>trajectory</strong>来得到对梯度的估计），需要一个叫<strong>importance factor</strong>的东西来计算正确(<strong>consistent</strong>)的梯度估计</p>
 </blockquote>
-<h4 id="GAE-Generalized-Advantage-Estimate"><a href="#GAE-Generalized-Advantage-Estimate" class="headerlink" title="GAE (Generalized Advantage Estimate)"></a>GAE (Generalized Advantage Estimate)</h4><p>可以引入参数$\lambda$定义广义的<strong>Advantage Function</strong>估计，同过<strong>TD-error</strong>可以定义一步估计$$\hat A^{(1)}(s_t, a_t) = \delta_t = r_t+\gamma V(s_{t+1}) - V(s_t)$$</p>
+<h4 id="GAE-Generalized-Advantage-Estimate"><a href="#GAE-Generalized-Advantage-Estimate" class="headerlink" title="GAE (Generalized Advantage Estimate)"></a>GAE (Generalized Advantage Estimate)</h4><p>可以引入参数$\lambda$定义广义的<strong>Advantage Function</strong>估计，同过<strong>TD-error</strong>可以定义一步估计$$\hat A^{(1)}(s_t, a_t) = \delta_t = r_t+\gamma V(s_{t+1}) - V(s_t)$$​</p>
+<blockquote>
+<p>注意这种估计是有偏 (<strong>biased</strong>) 的！因为此处的$V$ 实际上是旧的未更新的策略下的估计，而不是新的策略</p>
+</blockquote>
 <p>类似的可以定义$k$步估计$$\hat A^{(k)}(s_t,a_t)=\sum_{i=0}^{k-1} \delta_{t+i} =  \sum_{i=1}^{k-1} \gamma^i r_{t+i} + \gamma^kV(s_{t+k}) - V(s_t)$$；由此可见之前定义的$\hat A(s, a)$其实就是$k=\infty$的情况</p>
 <blockquote>
 <p>可以看到$k$越大，我们的估计就约接近收集的数据，就会有较小的<strong>bias</strong>，但同时也会有较大的<strong>variance</strong></p>
 <p>于是我们就需要参数$\lambda$来平衡这二者的影响</p>
 </blockquote>
 <p>定义$\text{GAE}(\gamma, \lambda)$的估计（通过添加系数使其<strong>consistent</strong>）为$$\widehat A(s_t, a_t) = (1-\lambda)(\hat A^{(1)}(s_t, a_t) + \lambda\hat A^{(2)}(s_t, a_t) + \lambda^2 \hat A^{(3)}(s_t, a_t) + \cdots)=\sum_{k=0}^{\infty}(\lambda\gamma)^k\delta_{t+k}$$</p>
-<p>我们可以通过调整参数$\lambda$来调整，$\lambda=0$相当于用<strong>TD-error</strong>进行估计，$\lambda=1$相当于用收集到的<strong>reward</strong>进行估计</p>
+<p>我们可以通过调整参数$\lambda$来调整，$\lambda=0$相当于用<strong>TD-error</strong>进行估计，$\lambda=1$​相当于用收集到的<strong>reward</strong>进行估计，一般取$\lambda\in[0.95,1]$</p>
 <h3 id="Training-Tricks"><a href="#Training-Tricks" class="headerlink" title="Training Tricks"></a>Training Tricks</h3><h4 id="Advantage-Normalization"><a href="#Advantage-Normalization" class="headerlink" title="Advantage Normalization"></a>Advantage Normalization</h4><p>在得到一个batch的数据<strong>Advantage Function</strong>的估计后，可以对其进行<strong>Normalization</strong></p>
 <blockquote>
 <p>这一操作可能是<strong>consistent</strong>的（not strictly proved here)，因为$\sum_a p(a\mid s)A(s, a) = \sum_a p(a\mid s)(Q(s, a)- V(s)) = 0$</p>
 </blockquote>
 <h4 id="Entropy-Loss-Score"><a href="#Entropy-Loss-Score" class="headerlink" title="Entropy Loss (Score)"></a>Entropy Loss (Score)</h4><p>可以添加一个<strong>Entropy</strong>的贡献，即为$J$加上$\mathbb E_s [H(s)] = \mathbb E_s [-\sum_{a} p(a\mid s)\log p(a\mid s)]$，这样可以保证一定的随机性使得不会很容易的就陷入到某一个固定的局部最优策略中</p>
-
+<h4 id="Asynchronous-Distributed-Training"><a href="#Asynchronous-Distributed-Training" class="headerlink" title="Asynchronous/Distributed Training"></a>Asynchronous/Distributed Training</h4><p>在<strong>Advantage Actor-Critic</strong>的基础上并行运行多个独立的<strong>Actor</strong>来收集数据，这中做法就是<strong>A3C (Astnchronous Advantage Actor Critic)</strong> </p>
+<p><strong>Distributed Training</strong>是指通常的并行收集数据的方法（可能同步、也可能异步），是一种提升训练效率的常见方法</p>
+<h3 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h3><h4 id="Network-Architecture"><a href="#Network-Architecture" class="headerlink" title="Network Architecture"></a>Network Architecture</h4><p>使用两个神经网络，一个负责<strong>Policy</strong>，另一个负责<strong>Value Function</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Actor</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, args, n_obs, n_act</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(Actor, self).__init__()</span><br><span class="line">        hiddens = args.hidden_nodes</span><br><span class="line">        self.fc1 = nn.Linear(n_obs, hiddens)</span><br><span class="line">        self.fc2 = nn.Linear(hiddens, hiddens)</span><br><span class="line">        self.logits = nn.Linear(hiddens, n_act)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        x = F.relu(self.fc1(x))</span><br><span class="line">        x = F.relu(self.fc2(x))</span><br><span class="line">        <span class="keyword">return</span> self.logits(x)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Critic</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, args, n_obs</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(Critic, self).__init__()</span><br><span class="line">        hiddens = args.hidden_nodes</span><br><span class="line">        self.fc1 = nn.Linear(n_obs, hiddens)</span><br><span class="line">        self.fc2 = nn.Linear(hiddens, hiddens)</span><br><span class="line">        self.value = nn.Linear(hiddens, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        x = F.relu(self.fc1(x))</span><br><span class="line">        x = F.relu(self.fc2(x))</span><br><span class="line">        <span class="keyword">return</span> self.value(x)</span><br></pre></td></tr></table></figure>
+<h4 id="Parallel-Environement"><a href="#Parallel-Environement" class="headerlink" title="Parallel Environement"></a>Parallel Environement</h4><p>我们希望同时并行多个环境以此来快速收集数据（对于<strong>off-policy</strong>的算法，一般没有必要，因为对数据的量要求并不是很大）</p>
+<p>可以参考<a href="/2021/02/19/WrapEnv/" title="这里">这里</a>对并行环境的介绍</p>
+<h4 id="Code"><a href="#Code" class="headerlink" title="Code"></a>Code</h4>
     </div>
 
     
@@ -334,11 +347,14 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2021/01/28/Pytorch-Intro/" rel="prev" title="Pytorch Fundamental">
-                  <i class="fa fa-chevron-left"></i> Pytorch Fundamental
+                <a href="/2021/01/28/Pytorch-Intro/" rel="prev" title="Pytorch (Numpy) Fundamental">
+                  <i class="fa fa-chevron-left"></i> Pytorch (Numpy) Fundamental
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2021/02/19/DDPG/" rel="next" title="DDPG (Deep Deterministic Policy Gradient)">
+                  DDPG (Deep Deterministic Policy Gradient) <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
           </div>
     </footer>
@@ -381,7 +397,7 @@
 
 <div class="copyright">
   &copy; 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

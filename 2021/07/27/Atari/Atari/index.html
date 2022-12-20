@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"lych1233.github.io","root":"/","images":"/images","scheme":"Pisces","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+<meta name="description" content="Feature将给出人类和现有的RL baseline&#x2F;SOTA的得分 给出标签标示该游戏的特点 图片与资料来源：  Wikipedia 在线游玩  现有RL算法表现的来源：  Dueling DQN  Rainbow   (1&#x2F;57) Games of ALE Emulator#1 Alien [Random] 227.8    [Human] 7127.7    [Duel Double DQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Introduction to Atari 2600 Games for Reinforcement Learning">
+<meta property="og:url" content="http://lych1233.github.io/2021/07/27/Atari/Atari/index.html">
+<meta property="og:site_name" content="lych_cys">
+<meta property="og:description" content="Feature将给出人类和现有的RL baseline&#x2F;SOTA的得分 给出标签标示该游戏的特点 图片与资料来源：  Wikipedia 在线游玩  现有RL算法表现的来源：  Dueling DQN  Rainbow   (1&#x2F;57) Games of ALE Emulator#1 Alien [Random] 227.8    [Human] 7127.7    [Duel Double DQ">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://lych1233.github.io/2021/07/27/Atari/Atari/Alien1.gif">
+<meta property="og:image" content="http://lych1233.github.io/2021/07/27/Atari/Atari/Alien2.gif">
+<meta property="og:image" content="http://lych1233.github.io/2021/07/27/Atari/Atari/MontezumaRevenge.png">
+<meta property="og:image" content="http://lych1233.github.io/2021/07/27/Atari/Atari/SpaceInvaders.png">
+<meta property="article:published_time" content="2021-07-27T12:55:48.327Z">
+<meta property="article:modified_time" content="2021-10-04T06:05:05.749Z">
+<meta property="article:author" content="Yancheng Liang">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://lych1233.github.io/2021/07/27/Atari/Atari/Alien1.gif">
+
+
+<link rel="canonical" href="http://lych1233.github.io/2021/07/27/Atari/Atari/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+<title>Introduction to Atari 2600 Games for Reinforcement Learning | lych_cys</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">lych_cys</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">It works!</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a></li>
+        <li class="menu-item menu-item-ai"><a href="/AI/" rel="section"><i class="fas fa-robot fa-fw"></i>AI</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="far fa-question-circle fa-fw"></i>About</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Feature"><span class="nav-number">1.</span> <span class="nav-text">Feature</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-57-Games-of-ALE-Emulator"><span class="nav-number">2.</span> <span class="nav-text">(1&#x2F;57) Games of ALE Emulator</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Alien"><span class="nav-number">2.1.</span> <span class="nav-text">#1 Alien</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Amidar"><span class="nav-number">2.2.</span> <span class="nav-text">#2 Amidar</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-Assault"><span class="nav-number">2.3.</span> <span class="nav-text">#3 Assault</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-Asterix"><span class="nav-number">2.4.</span> <span class="nav-text">#4 Asterix</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-Asteroids"><span class="nav-number">2.5.</span> <span class="nav-text">#5 Asteroids</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-Atlantis"><span class="nav-number">2.6.</span> <span class="nav-text">#6 Atlantis</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-Bank-Heist"><span class="nav-number">2.7.</span> <span class="nav-text">#7 Bank Heist</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-Battle-Zone"><span class="nav-number">2.8.</span> <span class="nav-text">#8 Battle Zone</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-Beam-Rider"><span class="nav-number">2.9.</span> <span class="nav-text">#9 Beam Rider</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#10-Berzerk"><span class="nav-number">2.10.</span> <span class="nav-text">#10 Berzerk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#11-Bowling"><span class="nav-number">2.11.</span> <span class="nav-text">#11 Bowling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#12-Boxing"><span class="nav-number">2.12.</span> <span class="nav-text">#12 Boxing</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#13-Breakout"><span class="nav-number">2.13.</span> <span class="nav-text">#13 Breakout</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#14-Centipede"><span class="nav-number">2.14.</span> <span class="nav-text">#14 Centipede</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#15-Chopper-Command"><span class="nav-number">2.15.</span> <span class="nav-text">#15 Chopper Command</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#16-Crazy-Climber"><span class="nav-number">2.16.</span> <span class="nav-text">#16 Crazy Climber</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#17-Defender"><span class="nav-number">2.17.</span> <span class="nav-text">#17 Defender</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#18-Demon-Attack"><span class="nav-number">2.18.</span> <span class="nav-text">#18 Demon Attack</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#19-Double-Dunk"><span class="nav-number">2.19.</span> <span class="nav-text">#19 Double Dunk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#20-Enduro"><span class="nav-number">2.20.</span> <span class="nav-text">#20 Enduro</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#21-Fishing-Derby"><span class="nav-number">2.21.</span> <span class="nav-text">#21 Fishing Derby</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#22-Freeway"><span class="nav-number">2.22.</span> <span class="nav-text">#22 Freeway</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#23-Frostbite"><span class="nav-number">2.23.</span> <span class="nav-text">#23 Frostbite</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#24-Gopher"><span class="nav-number">2.24.</span> <span class="nav-text">#24 Gopher</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#25-Gravitar"><span class="nav-number">2.25.</span> <span class="nav-text">#25 Gravitar</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#26-Hero"><span class="nav-number">2.26.</span> <span class="nav-text">#26 Hero</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#27-Ice-Hockey"><span class="nav-number">2.27.</span> <span class="nav-text">#27 Ice Hockey</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#28-Jamesbond"><span class="nav-number">2.28.</span> <span class="nav-text">#28 Jamesbond</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#29-Kangaroo"><span class="nav-number">2.29.</span> <span class="nav-text">#29 Kangaroo</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#30-Krull"><span class="nav-number">2.30.</span> <span class="nav-text">#30 Krull</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#31-Kung-Fu-Master"><span class="nav-number">2.31.</span> <span class="nav-text">#31 Kung Fu Master</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#32-Montezuma%E2%80%99s-Revenge"><span class="nav-number">2.32.</span> <span class="nav-text">#32 Montezuma’s Revenge</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#33-Ms-Pacman"><span class="nav-number">2.33.</span> <span class="nav-text">#33 Ms Pacman</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#34-Name-This-Game"><span class="nav-number">2.34.</span> <span class="nav-text">#34 Name This Game</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#35-Phoenix"><span class="nav-number">2.35.</span> <span class="nav-text">#35 Phoenix</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#36-Pitfall"><span class="nav-number">2.36.</span> <span class="nav-text">#36 Pitfall</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#37-Pong"><span class="nav-number">2.37.</span> <span class="nav-text">#37 Pong</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#38-Private-Eye"><span class="nav-number">2.38.</span> <span class="nav-text">#38 Private Eye</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#39-Qbert"><span class="nav-number">2.39.</span> <span class="nav-text">#39 Qbert</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#40-Riverraid"><span class="nav-number">2.40.</span> <span class="nav-text">#40 Riverraid</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#41-Road-Runner"><span class="nav-number">2.41.</span> <span class="nav-text">#41 Road Runner</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#42-Robotank"><span class="nav-number">2.42.</span> <span class="nav-text">#42 Robotank</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#43-Seaquest"><span class="nav-number">2.43.</span> <span class="nav-text">#43 Seaquest</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#44-Skiing"><span class="nav-number">2.44.</span> <span class="nav-text">#44 Skiing</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#45-Solaris"><span class="nav-number">2.45.</span> <span class="nav-text">#45 Solaris</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#46-Space-Invaders"><span class="nav-number">2.46.</span> <span class="nav-text">#46 Space Invaders</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#47-Star-Gunner"><span class="nav-number">2.47.</span> <span class="nav-text">#47 Star Gunner</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#48-Surround"><span class="nav-number">2.48.</span> <span class="nav-text">#48 Surround</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#49-Tennis"><span class="nav-number">2.49.</span> <span class="nav-text">#49 Tennis</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#50-Time-Pilot"><span class="nav-number">2.50.</span> <span class="nav-text">#50 Time Pilot</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#51-Tutankham"><span class="nav-number">2.51.</span> <span class="nav-text">#51 Tutankham</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#52-Up-and-Down"><span class="nav-number">2.52.</span> <span class="nav-text">#52 Up and Down</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#53-Venture"><span class="nav-number">2.53.</span> <span class="nav-text">#53 Venture</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#54-Video-Pinball"><span class="nav-number">2.54.</span> <span class="nav-text">#54 Video Pinball</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#55-Wizard-of-Wor"><span class="nav-number">2.55.</span> <span class="nav-text">#55 Wizard of Wor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#56-Yar%E2%80%99s-Revenge"><span class="nav-number">2.56.</span> <span class="nav-text">#56 Yar’s Revenge</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#57-Zaxxon"><span class="nav-number">2.57.</span> <span class="nav-text">#57 Zaxxon</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Yancheng Liang"
+      src="/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Yancheng Liang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/lych1233" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;lych1233" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/lych1233@gmail.com" title="E-Mail → lych1233@gmail.com"><i class="fas fa-envelope-square fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://lych1233.github.io/2021/07/27/Atari/Atari/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yancheng Liang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lych_cys">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Introduction to Atari 2600 Games for Reinforcement Learning
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-07-27 20:55:48" itemprop="dateCreated datePublished" datetime="2021-07-27T20:55:48+08:00">2021-07-27</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2021-10-04 14:05:05" itemprop="dateModified" datetime="2021-10-04T14:05:05+08:00">2021-10-04</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h3 id="Feature"><a href="#Feature" class="headerlink" title="Feature"></a>Feature</h3><p>将给出人类和现有的RL baseline/SOTA的得分</p>
+<p>给出标签标示该游戏的特点</p>
+<p>图片与资料来源：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Category:Atari_2600_games">Wikipedia</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.atarimania.com/pgemainsoft.awp?type=G&system=2">在线游玩</a></li>
+</ul>
+<p>现有RL算法表现的来源：</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="http://proceedings.mlr.press/v48/wangf16.pdf">Dueling DQN</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/viewPDFInterstitial/17204/16680">Rainbow</a></p>
+</li>
+</ul>
+<h3 id="1-57-Games-of-ALE-Emulator"><a href="#1-57-Games-of-ALE-Emulator" class="headerlink" title="(1/57) Games of ALE Emulator"></a>(1/57) Games of ALE Emulator</h3><h4 id="1-Alien"><a href="#1-Alien" class="headerlink" title="#1 Alien"></a>#1 Alien</h4><ul>
+<li><strong>[Random]</strong> 227.8    <strong>[Human]</strong> 7127.7    <strong>[Duel Double DQN]</strong> 4461.4   <strong>[Rainbow]</strong> <strong>9491.7</strong></li>
+</ul>
+<p>基本类似于Pacman，操作一个角色躲避敌人并且吃到地图上的所有的点。有时会产生特殊点，吃完后能战胜敌人；角色每个一定时间能够释放技能定住所有敌人。第一关是一张和Pacman类似的地图，第二关角色需要从底部通往屏幕最上方，躲避水平移动的敌人</p>
+<p><img src="Alien1.gif" alt="ALien地图1" style="zoom:67%;" />                <img src="Alien2.gif" alt="ALien地图2" style="zoom:67%;" /></p>
+<h4 id="2-Amidar"><a href="#2-Amidar" class="headerlink" title="#2 Amidar"></a>#2 Amidar</h4><h4 id="3-Assault"><a href="#3-Assault" class="headerlink" title="#3 Assault"></a>#3 Assault</h4><h4 id="4-Asterix"><a href="#4-Asterix" class="headerlink" title="#4 Asterix"></a>#4 Asterix</h4><h4 id="5-Asteroids"><a href="#5-Asteroids" class="headerlink" title="#5 Asteroids"></a>#5 Asteroids</h4><h4 id="6-Atlantis"><a href="#6-Atlantis" class="headerlink" title="#6 Atlantis"></a>#6 Atlantis</h4><h4 id="7-Bank-Heist"><a href="#7-Bank-Heist" class="headerlink" title="#7 Bank Heist"></a>#7 Bank Heist</h4><h4 id="8-Battle-Zone"><a href="#8-Battle-Zone" class="headerlink" title="#8 Battle Zone"></a>#8 Battle Zone</h4><h4 id="9-Beam-Rider"><a href="#9-Beam-Rider" class="headerlink" title="#9 Beam Rider"></a>#9 Beam Rider</h4><h4 id="10-Berzerk"><a href="#10-Berzerk" class="headerlink" title="#10 Berzerk"></a>#10 Berzerk</h4><h4 id="11-Bowling"><a href="#11-Bowling" class="headerlink" title="#11 Bowling"></a>#11 Bowling</h4><h4 id="12-Boxing"><a href="#12-Boxing" class="headerlink" title="#12 Boxing"></a>#12 Boxing</h4><h4 id="13-Breakout"><a href="#13-Breakout" class="headerlink" title="#13 Breakout"></a>#13 Breakout</h4><h4 id="14-Centipede"><a href="#14-Centipede" class="headerlink" title="#14 Centipede"></a>#14 Centipede</h4><h4 id="15-Chopper-Command"><a href="#15-Chopper-Command" class="headerlink" title="#15 Chopper Command"></a>#15 Chopper Command</h4><h4 id="16-Crazy-Climber"><a href="#16-Crazy-Climber" class="headerlink" title="#16 Crazy Climber"></a>#16 Crazy Climber</h4><h4 id="17-Defender"><a href="#17-Defender" class="headerlink" title="#17 Defender"></a>#17 Defender</h4><h4 id="18-Demon-Attack"><a href="#18-Demon-Attack" class="headerlink" title="#18 Demon Attack"></a>#18 Demon Attack</h4><h4 id="19-Double-Dunk"><a href="#19-Double-Dunk" class="headerlink" title="#19 Double Dunk"></a>#19 Double Dunk</h4><h4 id="20-Enduro"><a href="#20-Enduro" class="headerlink" title="#20 Enduro"></a>#20 Enduro</h4><h4 id="21-Fishing-Derby"><a href="#21-Fishing-Derby" class="headerlink" title="#21 Fishing Derby"></a>#21 Fishing Derby</h4><h4 id="22-Freeway"><a href="#22-Freeway" class="headerlink" title="#22 Freeway"></a>#22 Freeway</h4><h4 id="23-Frostbite"><a href="#23-Frostbite" class="headerlink" title="#23 Frostbite"></a>#23 Frostbite</h4><h4 id="24-Gopher"><a href="#24-Gopher" class="headerlink" title="#24 Gopher"></a>#24 Gopher</h4><h4 id="25-Gravitar"><a href="#25-Gravitar" class="headerlink" title="#25 Gravitar"></a>#25 Gravitar</h4><h4 id="26-Hero"><a href="#26-Hero" class="headerlink" title="#26 Hero"></a>#26 Hero</h4><h4 id="27-Ice-Hockey"><a href="#27-Ice-Hockey" class="headerlink" title="#27 Ice Hockey"></a>#27 Ice Hockey</h4><h4 id="28-Jamesbond"><a href="#28-Jamesbond" class="headerlink" title="#28 Jamesbond"></a>#28 Jamesbond</h4><h4 id="29-Kangaroo"><a href="#29-Kangaroo" class="headerlink" title="#29 Kangaroo"></a>#29 Kangaroo</h4><h4 id="30-Krull"><a href="#30-Krull" class="headerlink" title="#30 Krull"></a>#30 Krull</h4><h4 id="31-Kung-Fu-Master"><a href="#31-Kung-Fu-Master" class="headerlink" title="#31 Kung Fu Master"></a>#31 Kung Fu Master</h4><h4 id="32-Montezuma’s-Revenge"><a href="#32-Montezuma’s-Revenge" class="headerlink" title="#32 Montezuma’s Revenge"></a>#32 Montezuma’s Revenge</h4><p><strong>[TAG] Exploration</strong> 难以探索，reward非常稀疏并且游戏难度不低。往往需要通过非常多的操作（经过很多房间）才能完成一步进展（拾取道具、开门、打怪等）。2021年的一片文章 (43763分)：<a target="_blank" rel="noopener" href="https://arxiv.org/abs/1901.10995"><strong>Go</strong>-<strong>explore</strong>: a new approach for hard-exploration problems</a></p>
+<ul>
+<li><strong>[Random]</strong> 0.0    <strong>[Human]</strong> <strong>4753.3</strong>    <strong>[Duel Double DQN]</strong> 0.0   <strong>[Rainbow]</strong> 384.0</li>
+</ul>
+<p>操作一个角色完成闯关游戏，躲避路上的障碍和敌人，并拾取道具。获得道具以及地图的特定位置可以得到分数。钥匙可以用于开门通往新的场所，手电筒可以用于在部分黑暗关卡的照明</p>
+<p>整张地图是一个金字塔，共九层，每层99个房间。通关最下一层，找到藏宝室后可以获取大额奖励</p>
+<p><img src="MontezumaRevenge.png" alt="Montezuma地图"></p>
+<h4 id="33-Ms-Pacman"><a href="#33-Ms-Pacman" class="headerlink" title="#33 Ms Pacman"></a>#33 Ms Pacman</h4><h4 id="34-Name-This-Game"><a href="#34-Name-This-Game" class="headerlink" title="#34 Name This Game"></a>#34 Name This Game</h4><h4 id="35-Phoenix"><a href="#35-Phoenix" class="headerlink" title="#35 Phoenix"></a>#35 Phoenix</h4><h4 id="36-Pitfall"><a href="#36-Pitfall" class="headerlink" title="#36 Pitfall"></a>#36 Pitfall</h4><h4 id="37-Pong"><a href="#37-Pong" class="headerlink" title="#37 Pong"></a>#37 Pong</h4><h4 id="38-Private-Eye"><a href="#38-Private-Eye" class="headerlink" title="#38 Private Eye"></a>#38 Private Eye</h4><h4 id="39-Qbert"><a href="#39-Qbert" class="headerlink" title="#39 Qbert"></a>#39 Qbert</h4><h4 id="40-Riverraid"><a href="#40-Riverraid" class="headerlink" title="#40 Riverraid"></a>#40 Riverraid</h4><h4 id="41-Road-Runner"><a href="#41-Road-Runner" class="headerlink" title="#41 Road Runner"></a>#41 Road Runner</h4><h4 id="42-Robotank"><a href="#42-Robotank" class="headerlink" title="#42 Robotank"></a>#42 Robotank</h4><h4 id="43-Seaquest"><a href="#43-Seaquest" class="headerlink" title="#43 Seaquest"></a>#43 Seaquest</h4><h4 id="44-Skiing"><a href="#44-Skiing" class="headerlink" title="#44 Skiing"></a>#44 Skiing</h4><h4 id="45-Solaris"><a href="#45-Solaris" class="headerlink" title="#45 Solaris"></a>#45 Solaris</h4><h4 id="46-Space-Invaders"><a href="#46-Space-Invaders" class="headerlink" title="#46 Space Invaders"></a>#46 Space Invaders</h4><p><strong>[TAG] Cooperation</strong></p>
+<ul>
+<li><strong>[Random]</strong> 148.0    <strong>[Human]</strong>  1,668.7    <strong>[Duel Double DQN]</strong> 6,427.3   <strong>[Rainbow]</strong> <strong>18,789.0</strong></li>
+</ul>
+<p>游戏中会有一排一排的外星人，每隔一定时间下降一格（速度随时间加快），你需要发射子弹来消灭所有敌人，敌人到达底部或被敌人的子弹命中到损失所有生命则游戏失败；地图中有三个障碍物，可以阻挡双方的子弹，但每次被命中时都会被消耗掉一小部分</p>
+<p>  <img src="SpaceInvaders.png" alt="SpaceInvaders游戏场景"></p>
+<h4 id="47-Star-Gunner"><a href="#47-Star-Gunner" class="headerlink" title="#47 Star Gunner"></a>#47 Star Gunner</h4><h4 id="48-Surround"><a href="#48-Surround" class="headerlink" title="#48 Surround"></a>#48 Surround</h4><h4 id="49-Tennis"><a href="#49-Tennis" class="headerlink" title="#49 Tennis"></a>#49 Tennis</h4><h4 id="50-Time-Pilot"><a href="#50-Time-Pilot" class="headerlink" title="#50 Time Pilot"></a>#50 Time Pilot</h4><h4 id="51-Tutankham"><a href="#51-Tutankham" class="headerlink" title="#51 Tutankham"></a>#51 Tutankham</h4><h4 id="52-Up-and-Down"><a href="#52-Up-and-Down" class="headerlink" title="#52 Up and Down"></a>#52 Up and Down</h4><h4 id="53-Venture"><a href="#53-Venture" class="headerlink" title="#53 Venture"></a>#53 Venture</h4><h4 id="54-Video-Pinball"><a href="#54-Video-Pinball" class="headerlink" title="#54 Video Pinball"></a>#54 Video Pinball</h4><h4 id="55-Wizard-of-Wor"><a href="#55-Wizard-of-Wor" class="headerlink" title="#55 Wizard of Wor"></a>#55 Wizard of Wor</h4><h4 id="56-Yar’s-Revenge"><a href="#56-Yar’s-Revenge" class="headerlink" title="#56 Yar’s Revenge"></a>#56 Yar’s Revenge</h4><h4 id="57-Zaxxon"><a href="#57-Zaxxon" class="headerlink" title="#57 Zaxxon"></a>#57 Zaxxon</h4>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/18/GAN/" rel="prev" title="Generative Adversirial Networks （GAN的介绍）">
+                  <i class="fa fa-chevron-left"></i> Generative Adversirial Networks （GAN的介绍）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/12/21/about/about_me_application/" rel="next" title="about">
+                  about <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yancheng Liang</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+</body>
+</html>
