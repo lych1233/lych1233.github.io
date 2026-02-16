@@ -2,7 +2,7 @@
 layout: about
 title: about
 permalink: /
-subtitle: CS Ph.D. Student, University of Washington | Reinfrocement Learning, Multi-agent Systems
+subtitle: CSE Ph.D. Student, University of Washington | Reinforcement Learning, Multi-agent Systems
 
 profile:
   align: right
